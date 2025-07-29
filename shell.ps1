@@ -1,61 +1,144 @@
 ﻿# window title
 $host.ui.RawUI.WindowTitle = "Shell"
 
-$greetings = @(
-    "here we are."
-    "welcome back."
-    "hello again."
-)
+# help function. Gives little instructions for each function in shell
+function Invoke-ShellHelp {
+    param (
+    [ValidateSet("initialise", "shell", "banner", "greet")]
+    [string]$selectedFunction
+    )
+
+    switch ($selectedFunction) {
+        "initialise" { 
+            Write-Host "Resets all global variables and clears the console"  -ForegroundColor Yellow }
+
+        "shell" {
+            Write-Host "Contains a bunch of commands primarily for debugging" -ForegroundColor Yellow
+            Write-Host "Available Commands:" -ForegroundColor Yellow
+            Write-Host "ps1, directory, globals, preferences, dependencies"
+        }
+
+        "banner" { 
+            Write-Host "Allows you to mess around with your banner" -ForegroundColor Yellow
+            Write-Host "Available Commands:" -ForegroundColor Yellow
+            Write-Host "add, edit, remove, list, set, view, directories"
+        }
+        
+        "greet" {
+            Write-Host "Displays a random greeting (i'm working on it)" 
+        }
+
+        Default {
+            Write-Host "Available shell modules:" -ForegroundColor Yellow
+            # Write-Host "initialise, shell, banner, greet" -ForegroundColor Yellow
+            Write-Host "type in `"Invoke-ShellHelp [function]`" to view instructions for a specific function" -ForegroundColor Yellow
+        }
+    }
+}
 
 # Essentially resets all global variables and resets the shell 
 # This can be used if you're having issues with linking your project with your .ini
+# This can also be used to scan for new modules
 # !!! (Not the same as closing and reopening the shell) !!!
 function initialise {
     Clear-Host
-    # Get Preferences
-    $global:prefPath = Join-Path $env:APPDATA 'shell\pref.ini'
-    # Check if .ini file exists, and create it if it doesn't
-    if (!(Test-Path $global:prefPath)) {
-        $defaultLocation = Join-Path $HOME "shell"
-        $global:pref = @{
-            Settings = @{
-                projectDirectory = $defaultLocation
-                bannerDirectory = Join-Path $defaultLocation "banners"
-                currentBanner = "banner.txt"
+
+    # Attempt to import dependencies
+    $dependenciesPresent = $true
+    try {
+        Import-Module PsIni -ErrorAction Stop
+    }
+    catch {
+        Write-Host "Failed to import dependency PsIni" -ForegroundColor Red
+        $dependenciesPresent = $false
+    }
+
+    if ($dependenciesPresent) {
+        # Globals:
+        $global:pref
+        $global:prefPath
+        $global:projectDirectory
+        $global:shellModules
+
+        # Get Preferences
+        $global:prefPath = Join-Path $env:APPDATA 'shell\pref.ini'
+        # Check if .ini file exists, and create it if it doesn't
+        if (!(Test-Path $global:prefPath)) {
+            $defaultLocation = Join-Path $HOME "shell"
+            $global:pref = @{
+                Settings = @{
+                    projectDirectory = $defaultLocation
+
+                    # Move these into their own modules
+                    bannerDirectory = Join-Path $defaultLocation "banners"
+                    currentBanner = "banner.txt"
+                }
+                ShellModules = @{}
+            }
+
+            # Create new .ini with no output
+            New-Item -Path $global:prefPath -ItemType File -Force > $null
+            Export-Ini -InputObject $global:pref -Path $global:prefPath
+            Write-Host "New .ini created" -ForegroundColor Green
+        } else {
+            $global:pref = Import-Ini -Path $global:prefPath
+        }
+
+
+        # Find project directory
+        $global:projectDirectory = Join-Path $global:pref.Settings.projectDirectory ""
+
+        # Find modules in project directory
+        $modulePath = Join-Path $global:projectDirectory "modules"
+        $modules = Get-ChildItem -Path $modulePath -Filter *.psm1
+
+        # Check for new modules and import them
+        $initialModules = $global:pref.ShellModules
+        $newModules = 0
+        foreach ($module in $modules) {
+            $moduleName = $module.BaseName
+            if (-not ($global:pref.ShellModules.Module -eq $moduleName)) {
+                $global:pref.ShellModules.$moduleName = $moduleName
+
+                Write-Host "importing module $moduleName"
+                Import-Module "$HOME\shell\modules\$moduleName.psm1"
+
+                Write-Host "Module $module added successfully" -ForegroundColor Green
+                $newModules ++
             }
         }
 
-        # Create new .ini with no output
-        New-Item -Path $global:prefPath -ItemType File -Force > $null
+        # Remove any modules that are in the .ini, but not in the modules folder
+        $currentModuleNames = $modules.BaseName
+        $removedModules = Compare-Object $initialModules $global:pref.ShellModules |
+            Where-Object { $_.SideIndicator -eq "<=" } |
+            Select-Object -ExpandProperty InputObject
+
+        foreach ($name in $removedModules) {
+            $global:pref.ShellModules = $global:pref.ShellModules |
+                Where-Object { $_.Module -ne $name }
+            Write-Host "Module $module removed" -ForegroundColor Yellow
+        }
+
+        # Save new modules
+        $global:pref.ShellModules = $global:pref.ShellModules
+        $global:pref.ShellModules | Format-List
         Export-Ini -InputObject $global:pref -Path $global:prefPath
-        Write-Host "New .ini created" -ForegroundColor Green
-    } else {
-        $global:pref = Import-Ini -Path $global:prefPath
+
+        # If .ini file does not show the project directory
+        if (-not $global:projectDirectory) {
+            Write-Host "Your .ini does not link your project directory. please add it in" -ForegroundColor Red
+            Write-Host ".ini location:  $global:prefPath" -ForegroundColor Yellow
+            Write-Host "write in `"projectDirectory=[file location]`"" -ForegroundColor Yellow
+        } else {
+
+            # Maybe make a new function that enables and disables these since they are separate functions? idk, i'll figure it out probably
+            if (Test-Path $global:pref.Settings.bannerDirectory) {
+                banner
+            }
+            greet
+        }
     }
-
-    # Find project directory
-    $global:projectDirectory = Join-Path $global:pref.Settings.projectDirectory ""
-
-    # If .ini file does not show the project directory
-    if (-not $global:projectDirectory) {
-        Write-Host "Your .ini does not link your project directory. please add it in" -ForegroundColor Red
-        Write-Host ".ini location:  $global:prefPath" -ForegroundColor Yellow
-        Write-Host "write in `"projectDirectory=[file location]`"" -ForegroundColor Yellow
-    } else {
-
-    # find currently set banner
-    $global:bannerFile = $global:pref.Settings.currentBanner
-    # find banner location
-    # $global:bannerDirectory = Join-Path $global:pref.Settings.projectDirectory $global:bannerFile
-    $global:bannerDirectory = $global:pref.Settings.bannerDirectory
-    # Define banner
-    $global:banner =  Join-Path $global:bannerDirectory $global:bannerFile
-    }
-
-    if (Test-Path $global:banner) {
-        banner
-    }
-    greet
 }
 
 function shell {
@@ -65,7 +148,13 @@ function shell {
         [string]$action,
 
         [Parameter(Position = 1)]
-        [switch]$open
+        [ValidateSet("open", "update", "view")]
+        [string]$altAction,
+
+        [Parameter(Position = 2)]
+        [ValidateSet("path")]
+        [string]$openPath
+
     )
     
     switch ($action) {
@@ -91,7 +180,7 @@ function shell {
         
         "directory" {
             if (Test-Path $global:projectDirectory) {
-                if ($open) {
+                if ($altAction -eq "open") {
                     Invoke-Item $global:projectDirectory
                 } else {
                     Write-Host "Project Directory:   $global:projectDirectory" -ForegroundColor Yellow
@@ -107,13 +196,20 @@ function shell {
             Write-Host "prefPath:                   $global:prefPath" -ForegroundColor Yellow
             Write-Host "pref:                       $global:pref" -ForegroundColor Yellow
             Write-Host "projectDirectory:           $global:projectDirectory" -ForegroundColor Yellow
-            Write-Host "bannerDirectory:            $global:bannerDirectory" -ForegroundColor Yellow
-            Write-Host "bannerFile:                 $global:bannerFile" -ForegroundColor Yellow
-            Write-Host "banner:                     $global:banner" -ForegroundColor Yellow
+            Write-Host "shellModules:               $global:shellModules" -ForegroundColor Yellow
         }
 
         "preferences" {
-            Get-Content -Path $global:prefPath | ForEach-Object { Write-Host $_ -ForegroundColor Yellow }
+            if ($altAction -eq "open") {
+                if ($openPath -eq "path") {
+                    $prefdir = Join-Path $global:prefPath ".."
+                    Invoke-Item $prefdir
+                } else {
+                    Invoke-Item $global:prefPath
+                }
+            } else {
+                Get-Content -Path $global:prefPath | ForEach-Object { Write-Host $_ -ForegroundColor Yellow }
+            }
         }
 
         # Check for missing dependencies and ask the user if they want to install them
@@ -149,7 +245,7 @@ function shell {
             if ($response -match "^[Yy]") {
                 foreach ($module in $missingModules) {
                     try {
-                        Install-Module -Name $module -Force
+                        Install-Module -Name $module -Force -Scope CurrentUser
                         Write-Host "$module installed successfully" -ForegroundColor Green
                     } catch {
                         Write-Host "$module failed to install" -ForegroundColor Red
@@ -160,150 +256,7 @@ function shell {
 
         Default {
             Write-Host "Command not found" -ForegroundColor Red
-            Write-Host "Available commands:" -ForegroundColor Yellow
-            Write-Host "ps1, directory, globals, preferences" -ForegroundColor Yellow
-        }
-    }
-
-
-}
-
-# Creates basic commands for creating and modifying banners
-function banner {
-    param (
-        # Parameter help description
-        [Parameter(Position = 0)]
-        [ValidateSet("add", "edit", "remove", "list", "set", "view", "directories")]
-        [string]$action,
-
-        [Parameter(Position = 1)]
-        [string]$name,
-
-        [Parameter(Position = 2)]
-        [switch]$open
-    )
-
-
-    switch ($action) {
-        "add" {
-            if (!(Test-Path $global:bannerDirectory)) {
-                Write-Host "Banner directory does not exist" -ForegroundColor Red
-                Write-Host "Expected directory: $global:bannerDirectory" -ForegroundColor Yellow
-            } elseif (!$name) {
-                Write-Host "Enter a banner name" -ForegroundColor Red
-            } else {
-                $filePath = Join-Path $global:bannerDirectory "$name.txt"
-
-                if (!(Test-Path $filePath)) {
-                    Add-Content -Path $filePath -Value "put your banner here!"
-                    Write-Host "New banner added: $filePath" -ForegroundColor Green
-                    if ($open) {
-                        Invoke-Item $filePath
-                    }
-
-                } else {
-                    Write-Host "Banner $name already exists" -ForegroundColor Red
-                }
-            }
-        }
-
-        "edit" {
-            # If there is user input
-            if ($name) {
-                $target = Join-Path $global:bannerDirectory "$name.txt"
-
-                if (Test-Path $target) {
-                    Invoke-Item $target
-                } else {
-                    Write-Host "Banner $name does not exist" -ForegroundColor Red
-                }
-
-            } elseif (Test-Path $global:banner) {  #If there is no user input
-                Invoke-Item $global:banner
-            }  else {
-                Write-Host "There is no current banner" -ForegroundColor Red
-            }
-        }
-
-        "remove" {
-            $target = Join-Path $global:bannerDirectory "$name.txt"
-            if (Test-Path $target) {
-                Remove-Item $target
-                Write-Host "Banner $name Deleted" -ForegroundColor Yellow
-            } else {
-                Write-Host "Banner not found" -ForegroundColor Red
-            }
-        }
-
-        "list" {
-            $list = Get-ChildItem $global:bannerDirectory
-            foreach ($i in $list) {
-                if ($i.Extension -eq ".txt") {
-                    Write-Host $i.name -ForegroundColor Yellow
-                } else {
-                    Write-Host $i.name -ForegroundColor Cyan
-                }
-            }
-        }
-
-        "set" {
-            $target = Join-Path $global:bannerDirectory "$name.txt"
-
-            if (Test-Path $target) {
-                $global:pref.Settings.banner = $target
-                Export-Ini -InputObject $global:pref -Path $global:prefPath
-                Write-Host "Banner set to $name" -ForegroundColor Yellow
-            } else {
-                Write-Host "Banner $name does not exist" -ForegroundColor Red
-            }
-        }
-
-        "view" {
-            $target = Join-Path $global:bannerDirectory "$name.txt"
-            if (Test-Path $target) {
-                Get-Content -Path $target -Encoding UTF8 | ForEach-Object { Write-Host $_ -ForegroundColor Yellow }
-            } else {
-                 Write-Host "banner $name not found" -ForegroundColor Red
-            }
-        }
-
-        "directories" {
-            Write-Host "global:prefPath:            $global:prefPath" -ForegroundColor Yellow
-            Write-Host "global:banner:              $global:banner" -ForegroundColor Yellow
-            Write-Host "global:bannerDirectory:     $global:bannerDirectory" -ForegroundColor Yellow
-            Write-Host "global:bannerFile:          $global:bannerFile" -ForegroundColor Yellow
-        }
-
-        Default {
-            if (Test-Path $global:banner) {
-                Get-Content -Path $global:banner -Encoding UTF8 | ForEach-Object { Write-Host $_ -ForegroundColor Yellow }
-            } else {
-                 Write-Host "banner not found" -ForegroundColor Red
-            }
-        }
-    }
-}
-
-function greet {
-    param (
-        [Parameter(Position = 0)]
-        [ValidateSet("add", "edit", "remove", "list", "set", "view", "directories")]
-        [string]$display
-    )
-
-    switch ($display) {
-        "add" {
-            
-        }
-
-        "list" { 
-            foreach ($i in $greetings) {
-                Write-Host $i -ForegroundColor Yellow
-            }
-        }
-
-        Default {
-            Write-Host ($greetings | Get-Random) -ForegroundColor Yellow
+            Write-Host "Type in `"Invoke-ShellHelp`" for a list of commands" -ForegroundColor Yellow
         }
     }
 }
