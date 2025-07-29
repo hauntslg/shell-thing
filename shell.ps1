@@ -109,7 +109,6 @@ function initialise {
         }
 
         # Remove any modules that are in the .ini, but not in the modules folder
-        $currentModuleNames = $modules.BaseName
         $removedModules = Compare-Object $initialModules $global:pref.ShellModules |
             Where-Object { $_.SideIndicator -eq "<=" } |
             Select-Object -ExpandProperty InputObject
