@@ -3,6 +3,22 @@ $host.ui.RawUI.WindowTitle = "Shell"
 
 # help function. Gives little instructions for each function in shell
 function Invoke-ShellHelp {
+    <#
+    .SYNOPSIS
+    Greets the user with a charming message.
+
+    .DESCRIPTION
+    This function just says hello, but with ✨vibes✨. Great for testing if the shell is awake and emotionally present.
+
+    .EXAMPLE
+    Say-Hello
+    Output: Hello there, fellow shell gremlin 👾
+
+    .NOTES
+    Part of the Shell onboarding ritual collection.
+
+    #>
+
     param (
     [ValidateSet("initialise", "shell", "banner", "greet")]
     [string]$selectedFunction
@@ -122,6 +138,7 @@ function initialise {
                 $global:prefPath = Join-Path $env:APPDATA 'shell\pref.ini'
                 # Check if .ini file exists, and create it if it doesn't
                 if (!(Test-Path $global:prefPath)) {
+                    # Change this to read from $PROFILE instead
                     $defaultLocation = Join-Path $HOME "shell"
                     $global:pref = @{
                         Settings = @{
