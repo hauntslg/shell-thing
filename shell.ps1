@@ -18,44 +18,13 @@ function Invoke-ShellHelp {
     Part of the Shell onboarding ritual collection.
 
     #>
-
-    param (
-    [ValidateSet("initialise", "shell", "banner", "greet")]
-    [string]$selectedFunction
-    )
-
-    switch ($selectedFunction) {
-        "initialise" { 
-            Write-Host "Resets all global variables and clears the console"  -ForegroundColor Yellow }
-
-        "shell" {
-            Write-Host "Contains a bunch of commands primarily for debugging" -ForegroundColor Yellow
-            Write-Host "Available Commands:" -ForegroundColor Yellow
-            Write-Host "ps1, directory, globals, preferences, dependencies"
-        }
-
-        "banner" { 
-            Write-Host "Allows you to mess around with your banner" -ForegroundColor Yellow
-            Write-Host "Available Commands:" -ForegroundColor Yellow
-            Write-Host "add, edit, remove, list, set, view, directories"
-        }
-        
-        "greet" {
-            Write-Host "Displays a random greeting (i'm working on it)" 
-        }
-
-        Default {
-            Write-Host "Available shell modules:" -ForegroundColor Yellow
-            # Write-Host "initialise, shell, banner, greet" -ForegroundColor Yellow
-            Write-Host "type in `"Invoke-ShellHelp [function]`" to view instructions for a specific function" -ForegroundColor Yellow
-        }
-    }
 }
 
 # Essentially resets all global variables and resets the shell 
 # This can be used if you're having issues with linking your project with your .ini
 # This can also be used to scan for new modules
 # !!! (Not the same as closing and reopening the shell) !!!
+Set-Alias -Name init -Value initialise
 function initialise {
     param (
     [Parameter(Position = 0)]
@@ -126,26 +95,21 @@ function initialise {
                 Write-Host "Failed to import dependency PsIni" -ForegroundColor Red
                 $dependenciesPresent = $false
             }
-
+            
+            # If dependencies are present, attempt to get data and declare globals
             if ($dependenciesPresent) {
-                # Globals:
-                $global:pref
-                $global:prefPath
-                $global:projectDirectory
-                $global:shellModules
-
-                # Get Preferences
                 $global:prefPath = Join-Path $env:APPDATA 'shell\pref.ini'
+
                 # Check if .ini file exists, and create it if it doesn't
                 if (!(Test-Path $global:prefPath)) {
                     # Change this to read from $PROFILE instead
-                    $defaultLocation = Join-Path $HOME "shell"
+                    $projectLocation = $PSScriptRoot
                     $global:pref = @{
                         Settings = @{
-                            projectDirectory = $defaultLocation
+                            projectDirectory = $projectLocation
 
                             # Move these into their own modules
-                            bannerDirectory = Join-Path $defaultLocation "banners"
+                            bannerDirectory = Join-Path $projectLocation "banners"
                             currentBanner = "banner.txt"
                         }
                         ShellModules = @{}
@@ -158,7 +122,6 @@ function initialise {
                 } else {
                     $global:pref = Import-Ini -Path $global:prefPath
                 }
-
 
                 # Find project directory
                 $global:projectDirectory = Join-Path $global:pref.Settings.projectDirectory ""
@@ -184,7 +147,7 @@ function initialise {
                     } else {
                         # Add modules preserving previously saved initialisation order
                         $keyValue = $global:pref.ShellModules[$moduleName]
-                        $global:pref.ShellModules[$moduleName] = "$keyValue" # oh that was easy actually
+                        $global:pref.ShellModules[$moduleName] = "$keyValue"
                         Import-Module (Join-Path $modulePath "$moduleName.psm1")
                     }
                 }
