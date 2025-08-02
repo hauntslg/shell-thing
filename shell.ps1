@@ -130,9 +130,9 @@ function initialise {
                 $modulePath = Join-Path $global:projectDirectory "modules"
                 $modules = Get-ChildItem -Path $modulePath -Filter *.psm1
 
-                # Check for new modules and import them
-                $initialModules = $global:pref.ShellModules
-                $newModules = 0
+                # New Modules
+                $newModules = @()
+
                 foreach ($module in $modules) {
                     $moduleName = $module.BaseName
                     # If a module in the modules directory is not in the .ini, add it
@@ -143,7 +143,8 @@ function initialise {
                         Import-Module (Join-Path $modulePath "$moduleName.psm1")
 
                         Write-Host "Module $module added successfully" -ForegroundColor Green
-                        $newModules++
+
+                        $newModules += $moduleName
                     } else {
                         # Add modules preserving previously saved initialisation order
                         $keyValue = $global:pref.ShellModules[$moduleName]
@@ -152,16 +153,26 @@ function initialise {
                     }
                 }
 
-                # Remove any modules that are in the .ini, but not in the modules folder
-                $removedModules = Compare-Object $initialModules $global:pref.ShellModules |
-                    Where-Object { $_.SideIndicator -eq "<=" } |
-                    Select-Object -ExpandProperty InputObject
+
+                $currentModules = Get-ChildItem $modulePath -Filter *.psm1 -File | ForEach-Object { $_.BaseName.Trim().ToLower() }
+                $initialModules = $global:pref.ShellModules.Keys | ForEach-Object { $_.Trim().ToLower() }
+
+
+                # Null-guard just in case
+                # doesn't work on my version :(
+                # $currentModules = $currentModules ?? @()
+                # $initialModules = $initialModules ?? @()
+
+                # Identify modules in the .ini but not in the filesystem
+                $removedModules = $initialModules | Where-Object { $_ -notin $currentModules }
 
                 foreach ($name in $removedModules) {
-                    $global:pref.ShellModules = $global:pref.ShellModules |
-                        Where-Object { $_.Module -ne $name }
-                    Write-Host "Module $module removed" -ForegroundColor Yellow
+                    $global:pref.ShellModules.Remove($name)
+                    Write-Host "Removed module: $name" -ForegroundColor Yellow
                 }
+
+
+
 
                 # Save new modules
                 Export-Ini -InputObject $global:pref -Path $global:prefPath
@@ -317,7 +328,6 @@ function shell {
 
 function what {
     Write-Host "idfk man" -ForegroundColor Yellow
-    
 }
 
 # Startup
