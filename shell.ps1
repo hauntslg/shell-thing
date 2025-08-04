@@ -209,7 +209,7 @@ function initialise {
 function shell {
     param (
         [Parameter(Position = 0)]
-        [ValidateSet("ps1", "directory", "globals", "preferences", "dependencies")]
+        [ValidateSet("code", "directory", "globals", "preferences", "dependencies")]
         [string]$action,
 
         [Parameter(Position = 1)]
@@ -224,8 +224,8 @@ function shell {
     
     switch ($action) {
         # Opens startup.ps1 in visual studio code
-        "ps1" {
-            $projectFile = Join-Path $global:projectDirectory "shell.ps1"
+        "code" {
+            $projectFile = $global:projectDirectory
             # If THIS FILE exists in the project directory
             if (Test-Path $projectFile) {
                 # if the user does not have visual studio code / the "code" command
@@ -328,6 +328,10 @@ function shell {
 
 function what {
     Write-Host "idfk man" -ForegroundColor Yellow
+}
+
+function shit {
+    Write-Host "🫵🤡"
 }
 
 # Startup
