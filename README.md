@@ -25,5 +25,7 @@ type in `Invoke-ShellHelp` for a list of commands :3
 `help` was taken so i gotta- I CAN WRITE HELP COMMANDS FOR SHELL??????
 ## To Do:
 Write help commands for each command
+comment shit
 Shell is still based in $HOME and must remain in $HOME (change this)
 Module initialisation data is still being written within shell. move those to their modules
+write go

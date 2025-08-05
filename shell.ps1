@@ -1,7 +1,6 @@
 ﻿# window title
 $host.ui.RawUI.WindowTitle = "Shell"
 
-# help function. Gives little instructions for each function in shell
 function Invoke-ShellHelp {
     <#
     .SYNOPSIS
@@ -333,14 +332,6 @@ function shell {
             Write-Host "Type in `"Invoke-ShellHelp`" for a list of commands" -ForegroundColor Yellow
         }
     }
-}
-
-function what {
-    Write-Host "idfk man" -ForegroundColor Yellow
-}
-
-function shit {
-    Write-Host "🫵🤡"
 }
 
 # Startup
