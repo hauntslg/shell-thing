@@ -209,18 +209,46 @@ function initialise {
 function shell {
     param (
         [Parameter(Position = 0)]
-        [ValidateSet("code", "directory", "globals", "preferences", "dependencies")]
+        [ValidateSet("code", "directory", "dir", "globals", "preferences", "pref", "dependencies")]
         [string]$action,
 
         [Parameter(Position = 1)]
-        [ValidateSet("open", "update", "view")]
-        [string]$altAction,
-
-        [Parameter(Position = 2)]
-        [ValidateSet("path")]
-        [string]$openPath
-
+        [ValidateSet("open", "update", "view", "go", "dir")]
+        [string]$altAction
     )
+
+    function _cmdShellDirectory {
+        if (Test-Path $global:projectDirectory) {
+            switch -Regex ($altAction) {
+                "^(open|go)$" { Invoke-Item $global:projectDirectory }
+
+                "^go$" { Set-Location $global:projectDirectory }
+
+                Default { Write-Host "Project Directory:   $global:projectDirectory" -ForegroundColor Yellow }
+            }
+        } else {
+            Write-Host "if you see this error, wtf did you do :sob:" -ForegroundColor Red
+            Write-Host "Test-Path `$global:projectDirectory failed" -ForegroundColor Yellow
+        }
+    }
+
+    function _cmdShellPreferences {
+        switch ($altAction) {
+            "open" { Invoke-Item $global:prefPath }
+
+            "dir" { 
+                $prefdir = Join-Path $global:prefPath ".." 
+                Invoke-Item $prefdir
+            }
+
+            "go" {
+                $prefdir = Join-Path $global:prefPath ".."
+                Set-Location $prefdir
+            }
+
+            Default { Get-Content -Path $global:prefPath | ForEach-Object { Write-Host $_ -ForegroundColor Yellow } }
+        }
+    }
     
     switch ($action) {
         # Opens startup.ps1 in visual studio code
@@ -242,19 +270,9 @@ function shell {
             }
         }
 
+        "dir" { _cmdShellDirectory }
         
-        "directory" {
-            if (Test-Path $global:projectDirectory) {
-                if ($altAction -eq "open") {
-                    Invoke-Item $global:projectDirectory
-                } else {
-                    Write-Host "Project Directory:   $global:projectDirectory" -ForegroundColor Yellow
-                }
-            } else {
-                Write-Host "if you see this error, wtf did you do :sob:" -ForegroundColor Red
-                Write-Host "Test-Path `$global:projectDirectory failed" -ForegroundColor Yellow
-            }
-        }
+        "directory" { _cmdShellDirectory }
 
         # Display all global variables
         "globals" {
@@ -264,18 +282,9 @@ function shell {
             Write-Host "shellModules:               $global:shellModules" -ForegroundColor Yellow
         }
 
-        "preferences" {
-            if ($altAction -eq "open") {
-                if ($openPath -eq "path") {
-                    $prefdir = Join-Path $global:prefPath ".."
-                    Invoke-Item $prefdir
-                } else {
-                    Invoke-Item $global:prefPath
-                }
-            } else {
-                Get-Content -Path $global:prefPath | ForEach-Object { Write-Host $_ -ForegroundColor Yellow }
-            }
-        }
+        "preferences" { _cmdShellPreferences }
+
+        "pref" { _cmdShellPreferences }
 
         # Check for missing dependencies and ask the user if they want to install them
         "dependencies" {
