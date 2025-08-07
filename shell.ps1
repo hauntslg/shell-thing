@@ -216,12 +216,12 @@ function shell {
         [string]$altAction
     )
 
-    function _cmdShellDirectory {
+    function _ShellDirectory {
         if (Test-Path $global:projectDirectory) {
-            switch -Regex ($altAction) {
-                "^(open|go)$" { Invoke-Item $global:projectDirectory }
+            switch ($altAction) {
+                "open" { Invoke-Item $global:projectDirectory }
 
-                "^go$" { Set-Location $global:projectDirectory }
+                "go" { Set-Location $global:projectDirectory }
 
                 Default { Write-Host "Project Directory:   $global:projectDirectory" -ForegroundColor Yellow }
             }
@@ -231,7 +231,7 @@ function shell {
         }
     }
 
-    function _cmdShellPreferences {
+    function _ShellPreferences {
         switch ($altAction) {
             "open" { Invoke-Item $global:prefPath }
 
@@ -269,9 +269,9 @@ function shell {
             }
         }
 
-        "dir" { _cmdShellDirectory }
+        "dir" { _ShellDirectory }
         
-        "directory" { _cmdShellDirectory }
+        "directory" { _ShellDirectory }
 
         # Display all global variables
         "globals" {
@@ -281,9 +281,9 @@ function shell {
             Write-Host "shellModules:               $global:shellModules" -ForegroundColor Yellow
         }
 
-        "preferences" { _cmdShellPreferences }
+        "preferences" { _ShellPreferences }
 
-        "pref" { _cmdShellPreferences }
+        "pref" { _ShellPreferences }
 
         # Check for missing dependencies and ask the user if they want to install them
         "dependencies" {
