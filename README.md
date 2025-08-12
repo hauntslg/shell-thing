@@ -9,10 +9,10 @@ by default, it is set to `$HOME/shell`
 ### Step 2
 Next, you want to get your functions and directories working properly.
 
-Next, you will need to configure your PowerShell profile. to do this, open up your terminal and type in `notepad $PROFILE`
+you will need to configure your PowerShell profile. to do this, open up your terminal and type in `notepad $PROFILE`
 once you're here, all you need to do is copy paste these in:
 ``` PowerShell
-. "$HOME\shell\shell.ps1"
+. "$HOME\shell\shell.ps1" # The location of your powershell script
 ```
 and that's it! it should be prepared the next time you open up PowerShell
 ### Step 3
@@ -21,11 +21,11 @@ just type in `shell dependencies` and it will scan through the entire list to se
 ## Contribution
 i mean, this is private rn but i don't really mind if anyone else wants to use or modify this
 ## Commands
-type in `Invoke-ShellHelp` for a list of commands :3
-`help` was taken so i gotta- I CAN WRITE HELP COMMANDS FOR SHELL??????
+i'm working on it-
 ## To Do:
 Write help commands for each command
 comment shit
 Shell is still based in $HOME and must remain in $HOME (change this)
-Module initialisation data is still being written within shell. move those to their modules
-write go
+> i may have changed this but i genuinely don't remember
+edit navvi - remove ai shit 
+create new helper files for each module

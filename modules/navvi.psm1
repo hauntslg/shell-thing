@@ -2,7 +2,7 @@ Set-Alias -Name nav -Value navvi
 function navvi {
     param (
         [Parameter(Position = 0)]
-        [ValidateSet("go", "list", "add", "remove")]
+        [ValidateSet("cd", "list", "add", "remove")]
         [string]$action,
 
         [Parameter(Position = 1)]
@@ -43,9 +43,9 @@ function navvi {
     }
 
     switch ($action) {
-        "go" {
+        "cd" {
             # Load aliases
-            $aliases =  $jsonFile
+            $aliases = _GetNavviAliases $jsonFile
 
             if ($aliases.ContainsKey($alias)) {
                 Set-Location -Path $aliases[$alias]
@@ -98,7 +98,7 @@ function navvi {
 
         Default { 
             #,, idk do jack shit i guess
-            Write-Host "Usage: navvi [go|list|add|remove] [alias] [location]"
+            Write-Host "Usage: navvi [cd|list|add|remove] [alias] [location]"
          }
     }
 }

@@ -212,7 +212,7 @@ function shell {
         [string]$action,
 
         [Parameter(Position = 1)]
-        [ValidateSet("open", "update", "view", "go", "dir")]
+        [ValidateSet("open", "update", "view", "cd", "dir")]
         [string]$altAction
     )
 
@@ -221,7 +221,7 @@ function shell {
             switch ($altAction) {
                 "open" { Invoke-Item $global:projectDirectory }
 
-                "go" { Set-Location $global:projectDirectory }
+                "cd" { Set-Location $global:projectDirectory }
 
                 Default { Write-Host "Project Directory:   $global:projectDirectory" -ForegroundColor Yellow }
             }

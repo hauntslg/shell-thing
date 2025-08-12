@@ -1,5 +1,8 @@
 # This isn't done yet, i'll use this to mess with .json files
 # This will be moved to a .json later
+
+# i understand jsons now.
+# i am regretting this decision.
 $greetings = @(
     "here we are."
     "welcome back."

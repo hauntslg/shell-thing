@@ -55,7 +55,7 @@ function banner {
                 $target = Join-Path $bannerDirectory "$name.txt"
 
                 if (Test-Path $target) {
-                    Invoke-Item $target
+                    Invoke-Item "$name.txt"
                 } else {
                     Write-Host "Banner $name does not exist" -ForegroundColor Red
                 }
@@ -90,11 +90,11 @@ function banner {
         # List all available banners
         "list" {
             $list = Get-ChildItem $bannerDirectory
-            foreach ($i in $list) {
-                if ($i.Extension -eq ".txt") {
-                    Write-Host $i.name -ForegroundColor Yellow
+            foreach ($item in $list) {
+                if ($item.Extension -eq ".txt") {
+                    Write-Host $item.name -ForegroundColor Cyan
                 } else {
-                    Write-Host $i.name -ForegroundColor Cyan
+                    Write-Host $item.name -ForegroundColor Yellow
                 }
             }
         }
@@ -104,7 +104,7 @@ function banner {
 
             # If the given banner exists, set that as the default
             if (Test-Path $target) {
-                $global:pref.Settings.banner = $target
+                $global:pref.Settings.currentBanner = "$name.txt"
                 Export-Ini -InputObject $global:pref -Path $global:prefPath
                 Write-Host "Banner set to $name" -ForegroundColor Yellow
             } else {
