@@ -1,4 +1,11 @@
-﻿# window title
+﻿# TODO: In initialisation, the banners are still being written within initialisation. Move that to banner.psm1
+#       When importing modules, make "Join-Path $modulePath "$moduleName.psm1"" one variable
+#       When importing modules, try using module objects instead of keys + strings
+#       $global:projectDirectory = $global:pref.Settings.projectDirectory    -    why does that line exist again..?
+#       comment. i'm gonna hate when i get around to it, but i gotta comment this shit
+#       Make `initialise` a parameter of `shell`
+
+# window title
 $host.ui.RawUI.WindowTitle = "Shell"
 
 function Invoke-ShellHelp {
@@ -86,6 +93,7 @@ function initialise {
             Clear-Host
 
             # Attempt to import dependencies
+            ## Consider _testDependencies function
             $dependenciesPresent = $true
             try {
                 Import-Module PsIni -ErrorAction Stop
@@ -147,7 +155,6 @@ function initialise {
                     } else {
                         # Add modules preserving previously saved initialisation order
                         $keyValue = $global:pref.ShellModules[$moduleName]
-                        $global:pref.ShellModules[$moduleName] = "$keyValue"
                         Import-Module (Join-Path $modulePath "$moduleName.psm1")
                     }
                 }

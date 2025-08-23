@@ -24,8 +24,8 @@ i mean, this is private rn but i don't really mind if anyone else wants to use o
 i'm working on it-
 ## To Do:
 Write help commands for each command
-comment shit
 Shell is still based in $HOME and must remain in $HOME (change this)
 > i may have changed this but i genuinely don't remember
-edit navvi - remove ai shit 
-create new helper files for each module
+i genuinely don't remember how i wrote navvi, maybe write that again-
+put \banners in \data
+put navvi.json in \data\navvi for consistency
