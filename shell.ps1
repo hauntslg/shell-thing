@@ -66,7 +66,7 @@ function initialise {
             }
 
             # If the position is not taken, don't the .ini
-            # change the .ini - typo mb
+            # don't change the .ini - typo mb
             # don't the cat
             if ($writeCheck -eq $true) {
                 $global:pref.ShellModules[$moduleName] = "$position"

@@ -4,59 +4,41 @@ function steam {
         [ValidateSet("list", "run", "cd")]
         [string]$action,
         
+        # ** ValueFromRemainingArguments = $true ** takes all other inputs without the need for quotes
+        # eg. instead of " 'aim labs' ", you can just do " aim labs "
         [Parameter(Position = 1,  ValueFromRemainingArguments = $true)] # THAT"S A THING? THIS IS PEAK 🗣️🗣️🗣️
         [string]$altAction
     )
+    # Default steam files location. if it ain't here, idk why but i blame you for this
     $commonPath = Join-Path ${env:ProgramFiles(x86)} "Steam\steamapps\common"
 
     function _GetSteamGames {
         $availableApps = @()
         $allApps = Get-ChildItem $commonPath -Directory
 
-        # Find every installed app
+        # Find every installed app by checking for an .exe within each game folder
         foreach($app in $allApps) {
             if(Get-ChildItem $app.FullName -Filter *.exe -File -ErrorAction SilentlyContinue) {
                 $availableApps += $app
             }
         }
 
+        # Return both every app (with and without an .exe) in the steam files, 
+        # and also every available app (folder with an .exe) in a separate list
         [PSCustomObject]@{
             AllApps = $allApps
             AvailableApps = $availableApps
         }
     }
-
-    function _SteamGameMenu {
-        $games = _GetSteamGames
-        if ($games.Count -eq 0) { return }
-
-        $choices = $games.AvailableApps | ForEach-Object { 
-            [PSCustomObject]@{ 
-                Game = $_.Name
-                Path = $_.FullName
-            } 
-        }
-
-        $selection = $choices | Out-GridView -Title "🎮 Steam Game Picker (Double-click to launch)" -PassThru
-
-        if ($selection) {
-            $exe = Get-ChildItem -Path $selection.Path -Filter "*.exe" -File -ErrorAction SilentlyContinue | 
-                Sort-Object Length -Descending | Select-Object -First 1
-            if ($exe) {
-                Start-Process $exe.FullName
-            } else {
-                Write-Host "No executable found in $($selection.Path)" -ForegroundColor Yellow
-            }
-        }
-    }
     
     if(Test-Path $commonPath) {
+        # All apps and available apps are separated for error prevention
         $apps = _GetSteamGames
         $allApps = $apps.AllApps
         $availableApps = $apps.AvailableApps
 
         switch($action) {
-            # Show all available steam apps
+            # Lists steam apps in common directory
             "list" {
                 # Show every steam app (including unavailable ones)
                 if($altAction -eq "all") {
@@ -67,6 +49,7 @@ function steam {
                             Write-Host $app.Name -ForegroundColor Yellow
                         }
                     }
+                # Show only the available steam apps
                 } else {
                     foreach($app in $availableApps) {
                         Write-Host $app.Name -ForegroundColor Cyan
@@ -87,11 +70,18 @@ function steam {
                         Write-Host "how tf did you get this error message" -ForegroundColor Yellow
                     }
                 } else {
-                    Write-Host "$altAction not found" -ForegroundColor Red
+                    # If the app is within the steam directory but is not installed, tell the user
+                    $match = $allApps | Where-Object { $_.Name -like "*$altAction*" }
+                    if($match) {
+                        Write-Host "$match is currently unavailable" -ForegroundColor Red
+                        Write-Host "install this app within steam to run it" -ForegroundColor Yellow
+                    } else {
+                        Write-Host "$altAction not found" -ForegroundColor Red
+                    }
                 }
             }
 
-            # Navigate to the location through the terminal
+            # Navigate to the selected game's location through the terminal
             "cd" {
                 $match = $allApps | Where-Object { $_.Name -like "*$altAction*" }
                 if ($match.Count -gt 1) {
@@ -106,7 +96,13 @@ function steam {
                 }
             }
 
-            Default { _SteamGameMenu }
+            Default { 
+                Write-Host "Steam func functional" -ForegroundColor Green
+                Write-Host "commonPath:     $commonPath" -ForegroundColor Yellow
+                Write-Host "Commands: list, all" -ForegroundColor Yellow
+                Write-Host "run," -ForegroundColor Yellow
+                Write-Host "cd," -ForegroundColor Yellow
+            }
         }
     } else {
         Write-Host "Steam common directory not found" -ForegroundColor Red
