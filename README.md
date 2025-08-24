@@ -27,5 +27,5 @@ Write help commands for each command
 Shell is still based in $HOME and must remain in $HOME (change this)
 > i may have changed this but i genuinely don't remember
 i genuinely don't remember how i wrote navvi, maybe write that again-
-put \banners in \data
 put navvi.json in \data\navvi for consistency
+change `init editOrder`

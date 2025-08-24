@@ -64,6 +64,7 @@ function steam {
                     # Select the .exe in the file folder
                     $exe = Get-ChildItem $match.FullName -Filter *.exe -File -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
                     if($exe) {
+                        Write-Host "Running $match" -ForegroundColor Yellow
                         Start-Process $exe.FullName
                     } else {
                         Write-Host ".exe not found in $altAction" -ForegroundColor Red
@@ -97,11 +98,11 @@ function steam {
             }
 
             Default { 
-                Write-Host "Steam func functional" -ForegroundColor Green
+                Write-Host "Steam directory found" -ForegroundColor Green
                 Write-Host "commonPath:     $commonPath" -ForegroundColor Yellow
                 Write-Host "Commands: list, all" -ForegroundColor Yellow
-                Write-Host "run," -ForegroundColor Yellow
-                Write-Host "cd," -ForegroundColor Yellow
+                Write-Host "          run," -ForegroundColor Yellow
+                Write-Host "          cd," -ForegroundColor Yellow
             }
         }
     } else {

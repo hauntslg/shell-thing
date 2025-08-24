@@ -8,24 +8,6 @@
 # window title
 $host.ui.RawUI.WindowTitle = "Shell"
 
-function Invoke-ShellHelp {
-    <#
-    .SYNOPSIS
-    Greets the user with a charming message.
-
-    .DESCRIPTION
-    This function just says hello, but with ✨vibes✨. Great for testing if the shell is awake and emotionally present.
-
-    .EXAMPLE
-    Say-Hello
-    Output: Hello there, fellow shell gremlin 👾
-
-    .NOTES
-    Part of the Shell onboarding ritual collection.
-
-    #>
-}
-
 # Essentially resets all global variables and resets the shell 
 # This can be used if you're having issues with linking your project with your .ini
 # This can also be used to scan for new modules
@@ -116,7 +98,7 @@ function initialise {
                             projectDirectory = $projectLocation
 
                             # Move these into their own modules
-                            bannerDirectory = Join-Path $projectLocation "banners"
+                            bannerDirectory = Join-Path $projectLocation "data/banners"
                             currentBanner = "banner.txt"
                         }
                         ShellModules = @{}
