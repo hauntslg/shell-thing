@@ -2,7 +2,6 @@ Set-Alias -Name nav -Value navvi
 function navvi {
     param (
         [Parameter(Position = 0)]
-        [ValidateSet("cd", "list", "add", "remove")]
         [string]$action,
 
         [Parameter(Position = 1)]
@@ -42,11 +41,12 @@ function navvi {
         return $aliases
     }
 
+    # This line was originally in every switch action
+    $aliases = _GetNavviAliases $jsonFile
     switch ($action) {
+        
+        # In case an alias name matches one of the commands
         "cd" {
-            # Load aliases
-            $aliases = _GetNavviAliases $jsonFile
-
             if ($aliases.ContainsKey($alias)) {
                 Set-Location -Path $aliases[$alias]
             } else {
@@ -55,9 +55,6 @@ function navvi {
         }
 
         "list" {
-            # Load aliases
-            $aliases = _GetNavviAliases $jsonFile
-
             if ($aliases.Count -eq 0) {
                 Write-Host "No aliases found."
             } else {
@@ -71,9 +68,6 @@ function navvi {
                 $location = (Get-Location).Path
             }
 
-            # Read and convert existing aliases to hashtable
-            $aliases = _GetNavviAliases $jsonFile
-
             # Add or update the alias
             $aliases[$alias] = $location
 
@@ -84,9 +78,6 @@ function navvi {
         }
 
         "remove" {
-            # Load aliases
-            $aliases = _GetNavviAliases $jsonFile
-
             if ($aliases.ContainsKey($alias)) {
                 $aliases.Remove($alias)
                 $aliases | ConvertTo-Json -Depth 2 | Set-Content -Encoding UTF8 $jsonFile
@@ -97,8 +88,11 @@ function navvi {
         }
 
         Default { 
-            #,, idk do jack shit i guess
-            Write-Host "Usage: navvi [cd|list|add|remove] [alias] [location]"
-         }
+            if ($aliases.ContainsKey($action)) {
+                Set-Location -Path $aliases[$action]
+            } else {
+                Write-Warning "Alias '$action' not found." -ForegroundColor Red
+            }
+        }
     }
 }

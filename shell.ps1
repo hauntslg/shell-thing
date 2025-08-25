@@ -129,9 +129,14 @@ function initialise {
                         $global:pref.ShellModules[$moduleName] = "0"
 
                         Write-Host "importing module $moduleName" -ForegroundColor Yellow
-                        Import-Module (Join-Path $modulePath "$moduleName.psm1")
 
-                        Write-Host "Module $module added successfully" -ForegroundColor Green
+                        try {
+                            Import-Module (Join-Path $modulePath "$moduleName.psm1")
+                            Write-Host "Module $module added successfully" -ForegroundColor Green
+                        }
+                        catch {
+                            Write-Host "Failed to import $module" -ForegroundColor Red
+                        }
 
                         $newModules += $moduleName
                     } else {
