@@ -11,7 +11,7 @@ function navvi {
         [string]$location
     )
 
-    $jsonFile = Join-Path $global:projectDirectory "data/navvi/navvi.json"
+    $jsonFile = Join-Path $env:APPDATA "shell/data/navvi/navvi.json"
 
     # Make sure the data file exists and is valid
     if (!(Test-Path $jsonFile)) {

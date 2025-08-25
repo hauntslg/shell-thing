@@ -227,14 +227,14 @@ function shell {
 
     function _ShellPreferences {
         switch ($altAction) {
-            "open" { Invoke-Item $global:prefPath }
+            "ii" { Invoke-Item $global:prefPath }
 
             "dir" { 
                 $prefdir = Join-Path $global:prefPath ".." 
                 Invoke-Item $prefdir
             }
 
-            "go" {
+            "cd" {
                 $prefdir = Join-Path $global:prefPath ".."
                 Set-Location $prefdir
             }

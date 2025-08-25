@@ -20,9 +20,12 @@ function banner {
     } else {
     # find currently set banner
     $bannerFile = $global:pref.Settings.currentBanner
-    # find banner location
-    # $bannerDirectory = Join-Path $global:pref.Settings.projectDirectory $bannerFile
-    $bannerDirectory = $global:pref.Settings.bannerDirectory
+    # find banners location, create it if it doesn't exist
+    $bannerDirectory = Join-Path $env:APPDATA "shell/data/banners"
+    if(!(Test-Path $bannerDirectory)) {
+        New-Item $bannerDirectory -ItemType Directory
+        Write-Host 'New banner data file created'
+    }
     # Define banner
     $banner =  Join-Path $bannerDirectory $bannerFile
     }
