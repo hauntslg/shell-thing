@@ -3,12 +3,15 @@ function what {
 }
 
 function shit {
-    Write-Host "you clown" -ForegroundColor Cyan
+    Write-Host "sobbing and crying" -ForegroundColor Cyan
 }
 
-
+function pogger {
+    Write-Host "YIPPEEEEEEE" -ForegroundColor Cyan
+}
 
 # i should totally remake The Fuck for powershell...
 function fuck {
-    Write-Host "watch your fucking language" -ForegroundColor Cyan
+    Write-Host "sobbing and crying" -ForegroundColor Cyan
 }
+
