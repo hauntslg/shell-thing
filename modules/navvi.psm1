@@ -39,7 +39,7 @@ function navvi {
                         }
                     }
                 } catch {
-                    Write-Warning "Failed to read alias data."
+                    Write-Host "Failed to read alias data." -ForegroundColor Red
                 }
             }
         }
@@ -55,13 +55,13 @@ function navvi {
             if ($aliases.ContainsKey($alias)) {
                 Set-Location -Path $aliases[$alias]
             } else {
-                Write-Warning "Alias '$alias' not found."
+                Write-Host "Alias '$alias' not found." -ForegroundColor Red
             }
         }
 
         "list" {
             if ($aliases.Count -eq 0) {
-                Write-Host "No aliases found."
+                Write-Host "No aliases found." -ForegroundColor Red
             } else {
                 $aliases.GetEnumerator() | Format-Table Name, Value -AutoSize
             }
@@ -79,16 +79,16 @@ function navvi {
             # Save back to JSON
             $aliases | ConvertTo-Json -Depth 2 | Set-Content -Encoding UTF8 $jsonFile
 
-            Write-Host "Saved '$alias' as '$location'"
+            Write-Host "Saved '$alias' as '$location'" -ForegroundColor Yellow
         }
 
         "remove" {
             if ($aliases.ContainsKey($alias)) {
                 $aliases.Remove($alias)
                 $aliases | ConvertTo-Json -Depth 2 | Set-Content -Encoding UTF8 $jsonFile
-                Write-Host "Removed alias '$alias'"
+                Write-Host "Removed alias '$alias'" -ForegroundColor Yellow
             } else {
-                Write-Warning "Alias '$alias' does not exist."
+                Write-Host "Alias '$alias' does not exist." -ForegroundColor Red
             }
         }
 
@@ -96,7 +96,7 @@ function navvi {
             if ($aliases.ContainsKey($action)) {
                 Set-Location -Path $aliases[$action]
             } else {
-                Write-Warning "Alias '$action' not found." -ForegroundColor Red
+                Write-Host "Alias '$action' not found." -ForegroundColor Red 
             }
         }
     }
