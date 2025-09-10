@@ -68,21 +68,33 @@ function initialise {
             $importScript = Join-Path $PSScriptRoot "initialise\import.ps1"
             . $importScript
 
-            # If .ini file shows the project directory
             if ($global:pref.Settings.projectDirectory) {
-                # Run all modules with position > 0, in ascending order
-                $startupModules = $global:pref.ShellModules.GetEnumerator() |
-                    Where-Object { [int]$_.Value -gt 0 } |
-                    Sort-Object { [int]$_.Value }
+                $moduleEntries = @($global:pref.ShellModules.GetEnumerator()) # changed this to an array
+                $allModules = $moduleEntries | Sort-Object { [int]$_.Value }
 
-                foreach ($moduleEntry in $startupModules) {
-                    $modObj = Get-Module $moduleEntry.Key
-                    if ($modObj) {
-                        foreach ($fn in $modObj.ExportedCommands.Keys) {
-                            & $fn
+                $startupKeys = @()
+                    foreach ($entry in $moduleEntries) {
+                        $position = [int]$entry.Value
+                        if ($position -gt 0) {
+                            $startupKeys += $entry.Key
                         }
-                    } else {
-                        Write-Host "Module $($moduleEntry.Key) failed to import" -ForegroundColor Red
+                    }
+
+                foreach ($moduleEntry in $allModules) {
+                    $modulePath = Join-Path $global:pref.Settings.projectDirectory "modules\$($moduleEntry.Key).psm1"
+
+                    Import-Module $modulePath -Force -Global
+                    $modObj = Get-Module $moduleEntry.Key
+
+                    if ($startupKeys -contains $moduleEntry.Key) {
+
+                        foreach ($fn in $modObj.ExportedCommands.Keys) {
+                            try {
+                                & $fn
+                            } catch {
+                                Write-Warning "Failed to invoke $fn from $($moduleEntry.Key)"
+                            }
+                        }
                     }
                 }
             } else {
