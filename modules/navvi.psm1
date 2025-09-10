@@ -15,6 +15,11 @@ function navvi {
 
     # Make sure the data file exists and is valid
     if (!(Test-Path $jsonFile)) {
+        $dataDir = Join-Path $env:APPDATA "shell/data/navvi"
+        if (!(Test-Path $dataDir)) {
+            New-Item -ItemType Directory -Path $dataDir -Force | Out-Null
+        }
+        New-Item -ItemType File -Path $jsonFile -Force | Out-Null
         '{}' | Set-Content -Encoding UTF8 $jsonFile
     }
 

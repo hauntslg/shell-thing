@@ -147,8 +147,13 @@ function osu {
 
                                 foreach ($file in $osuFiles) {
                                     # Osu files are structurally identical to .ini files, so PsIni would work here
-                                    $ini = Get-IniContent $file.FullName
-                                    if ($ini['General']['Mode'] -eq $mode) { return $true }
+                                    # emphasis on "should"
+                                    # so it turns out that every time i test this i get an error for every song diff in my dirs
+                                    # EVERY SINGLE DIFF
+                                    # I HAVE 3000+ DIFFS
+                                    # AUGHHHHHHHHHHHHHH
+                                    $diff = Get-IniContent $file.FullName
+                                    if ($diff["General"]["Mode"] -eq $mode) { return $true }
                                 }
                                 return $false
                              }
