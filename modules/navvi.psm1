@@ -77,7 +77,7 @@ function navvi {
             Write-Host "Saved '$alias' as '$location'" -ForegroundColor Yellow
         }
 
-        "remove" {
+        "rem" {
             if ($aliases.ContainsKey($alias)) {
                 $aliases.Remove($alias)
                 $aliases | ConvertTo-Json -Depth 2 | Set-Content -Encoding UTF8 $jsonFile

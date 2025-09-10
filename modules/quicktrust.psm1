@@ -19,7 +19,7 @@ function quicktrust {
     #>
 
     $modules = $global:pref.ShellModules.Keys
-    $modulesDirectory = Join-Path $global:projectDirectory "modules"
+    $modulesDirectory = Join-Path $global:pref.Settings.projectDirectory "modules"
     $confirm = $false # for warning the user about running powershell code
 
     # Warn user about running modules, because powershell is dumb and can brick your pc 

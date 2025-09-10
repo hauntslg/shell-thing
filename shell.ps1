@@ -1,203 +1,10 @@
 ﻿# TODO: In initialisation, the banners are still being written within initialisation. Move that to banner.psm1
 #       When importing modules, make "Join-Path $modulePath "$moduleName.psm1"" one variable
 #       When importing modules, try using module objects instead of keys + strings
-#       $global:projectDirectory = $global:pref.Settings.projectDirectory    -    why does that line exist again..?
 #       comment. i'm gonna hate when i get around to it, but i gotta comment this shit
-#       Make `initialise` a parameter of `shell`
 
-# window title
-$host.ui.RawUI.WindowTitle = "Shell"
-
-# Essentially resets all global variables and resets the shell 
-# This can be used if you're having issues with linking your project with your .ini
-# This can also be used to scan for new modules
-# !!! (Not the same as closing and reopening the shell) !!!
-Set-Alias -Name init -Value initialise
-function initialise {
-    param (
-    [Parameter(Position = 0)]
-    [ValidateSet("order", "editOrder")]
-    [string]$action,
-
-    [Parameter(Position = 1)]
-    [string]$moduleName,
-
-    [Parameter(Position = 2)]
-    [int]$position
-    )
-
-    switch ($action) {
-        "editOrder" {
-            $writeCheck = $true
-
-            # If the module exists
-            if ($global:pref.ShellModules.Keys -contains $moduleName) {
-                # And the given position is an integer
-                if ($position -ge 0) {
-
-                    # For every saved module
-                    foreach ($key in $global:pref.ShellModules) {
-                        $keyValue = $global:pref.ShellModules[$key]
-
-                        # Check if the initialisation position is already taken
-                        if (-not($position -eq 0) -and ($position -eq $keyValue)) {
-                            Write-Host "Position $position already taken" -ForegroundColor Red
-                            $writeCheck = $false
-                        }
-                    }
-                } else {
-                    Write-Host "Invalid position: $position" -ForegroundColor Red
-                    $writeCheck = $false
-                }
-            } else {
-                Write-Host "Module $moduleName not found" -ForegroundColor Red
-                $writeCheck = $false
-            }
-
-            # If the position is not taken, don't the .ini
-            # don't change the .ini - typo mb
-            # don't the cat
-            if ($writeCheck -eq $true) {
-                $global:pref.ShellModules[$moduleName] = "$position"
-                $global:pref.ShellModules | Format-List
-                Export-Ini -InputObject $global:pref -Path $global:prefPath
-            }
-        }
-
-        "order" {
-            foreach ($module in $global:pref.ShellModules.Keys) {
-                $keyValue = $global:pref.ShellModules[$module]
-                Write-Host "$module = $keyValue"
-            }
-        }
-
-        Default {
-            Clear-Host
-
-            # Attempt to import dependencies
-            ## Consider _testDependencies function
-            $dependenciesPresent = $true
-            try {
-                Import-Module PsIni -ErrorAction Stop
-            }
-            catch {
-                Write-Host "Failed to import dependency PsIni" -ForegroundColor Red
-                $dependenciesPresent = $false
-            }
-            
-            # If dependencies are present, attempt to get data and declare globals
-            if ($dependenciesPresent) {
-                $global:prefPath = Join-Path $env:APPDATA 'shell\pref.ini'
-
-                # Check if .ini file exists, and create it if it doesn't
-                if (!(Test-Path $global:prefPath)) {
-                    # Change this to read from $PROFILE instead
-                    $projectLocation = $PSScriptRoot
-                    $global:pref = @{
-                        Settings = @{
-                            projectDirectory = $projectLocation
-
-                            # Move these into their own modules
-                            bannerDirectory = Join-Path $projectLocation "data/banners"
-                            currentBanner = "banner.txt"
-                        }
-                        ShellModules = @{}
-                    }
-
-                    # Create new .ini with no output
-                    New-Item -Path $global:prefPath -ItemType File -Force > $null
-                    Export-Ini -InputObject $global:pref -Path $global:prefPath
-                    Write-Host "New .ini created" -ForegroundColor Green
-                } else {
-                    $global:pref = Import-Ini -Path $global:prefPath
-                }
-
-                # Find project directory
-                $global:projectDirectory = Join-Path $global:pref.Settings.projectDirectory ""
-
-                # Find modules in project directory
-                $modulePath = Join-Path $global:projectDirectory "modules"
-                $modules = Get-ChildItem -Path $modulePath -Filter *.psm1
-
-                # New Modules
-                $newModules = @()
-
-                foreach ($module in $modules) {
-                    $moduleName = $module.BaseName
-                    # If a module in the modules directory is not in the .ini, add it
-                    if (-not ($global:pref.ShellModules.Keys -contains $moduleName)) {
-                        $global:pref.ShellModules[$moduleName] = "0"
-
-                        Write-Host "importing module $moduleName" -ForegroundColor Yellow
-
-                        try {
-                            Import-Module (Join-Path $modulePath "$moduleName.psm1")
-                            Write-Host "Module $module added successfully" -ForegroundColor Green
-                        }
-                        catch {
-                            Write-Host "Failed to import $module" -ForegroundColor Red
-                        }
-
-                        $newModules += $moduleName
-                    } else {
-                        # Add modules preserving previously saved initialisation order
-                        $keyValue = $global:pref.ShellModules[$moduleName]
-                        Import-Module (Join-Path $modulePath "$moduleName.psm1")
-                    }
-                }
-
-
-                $currentModules = Get-ChildItem $modulePath -Filter *.psm1 -File | ForEach-Object { $_.BaseName.Trim().ToLower() }
-                $initialModules = $global:pref.ShellModules.Keys | ForEach-Object { $_.Trim().ToLower() }
-
-
-                # Null-guard just in case
-                # doesn't work on my version :(
-                # $currentModules = $currentModules ?? @()
-                # $initialModules = $initialModules ?? @()
-
-                # Identify modules in the .ini but not in the filesystem
-                $removedModules = $initialModules | Where-Object { $_ -notin $currentModules }
-
-                foreach ($name in $removedModules) {
-                    $global:pref.ShellModules.Remove($name)
-                    Write-Host "Removed module: $name" -ForegroundColor Yellow
-                }
-
-
-
-
-                # Save new modules
-                Export-Ini -InputObject $global:pref -Path $global:prefPath
-
-                # If .ini file shows the project directory
-                if ($global:projectDirectory) {
-                    # Run every module set to run on initialisation
-                    $i = 1
-                    foreach ($module in $global:pref.ShellModules.Keys) {
-                        $position = [int]$global:pref.ShellModules[$module]
-                        if ($position -eq $i) {
-                            $modObj = Get-Module $module
-                            if ($modObj) {
-                                $expFn = $modObj.ExportedCommands.Keys
-                                foreach ($fn in $expFn) {
-                                    & $fn
-                                }
-                            } else {
-                                Write-Host "Module $module failed to import" -ForegroundColor Red
-                            }
-                            $i++
-                        }
-                    }
-                } else {
-                    Write-Host "Your .ini does not link your project directory. please add it in" -ForegroundColor Red
-                    Write-Host ".ini location:  $global:prefPath" -ForegroundColor Yellow
-                    Write-Host "write in `"projectDirectory=[file location]`"" -ForegroundColor Yellow
-                }
-            }
-        }
-    }
-}
+# # window title
+# $host.ui.RawUI.WindowTitle = "Shell"
 
 function shell {
     param (
@@ -211,17 +18,17 @@ function shell {
     )
 
     function _ShellDirectory {
-        if (Test-Path $global:projectDirectory) {
+        if (Test-Path $global:pref.Settings.projectDirectory) {
             switch ($altAction) {
-                "open" { Invoke-Item $global:projectDirectory }
+                "open" { Invoke-Item $global:pref.Settings.projectDirectory }
 
-                "cd" { Set-Location $global:projectDirectory }
+                "cd" { Set-Location $global:pref.Settings.projectDirectory }
 
-                Default { Write-Host "Project Directory:   $global:projectDirectory" -ForegroundColor Yellow }
+                Default { Write-Host "Project Directory:   $global:pref.Settings.projectDirectory" -ForegroundColor Yellow }
             }
         } else {
             Write-Host "if you see this error, wtf did you do :sob:" -ForegroundColor Red
-            Write-Host "Test-Path `$global:projectDirectory failed" -ForegroundColor Yellow
+            Write-Host "Test-Path `$global:pref.Settings.projectDirectory failed" -ForegroundColor Yellow
         }
     }
 
@@ -246,7 +53,7 @@ function shell {
     switch ($action) {
         # Opens startup.ps1 in visual studio code
         "code" {
-            $projectFile = $global:projectDirectory
+            $projectFile = $global:pref.Settings.projectDirectory
             # If THIS FILE exists in the project directory
             if (Test-Path $projectFile) {
                 # if the user does not have visual studio code / the "code" command
@@ -271,7 +78,7 @@ function shell {
         "globals" {
             Write-Host "prefPath:                   $global:prefPath" -ForegroundColor Yellow
             Write-Host "pref:                       $global:pref" -ForegroundColor Yellow
-            Write-Host "projectDirectory:           $global:projectDirectory" -ForegroundColor Yellow
+            Write-Host "projectDirectory:           $global:pref.Settings.projectDirectory" -ForegroundColor Yellow
             Write-Host "shellModules:               $global:shellModules" -ForegroundColor Yellow
         }
 
@@ -284,6 +91,7 @@ function shell {
             # List of currently required dependencies
             $dependencies = @(
                 "PsIni"
+                # add node.js
             )
             $missingModuleCount = 0
             $missingModules = @()
@@ -329,4 +137,13 @@ function shell {
 }
 
 # Startup
-initialise
+$shellDataPath = Join-Path $PSScriptRoot "modules\shelldata"
+$initPath = Join-Path $shellDataPath "init.psm1"
+if (Test-Path $initPath) {
+    Import-Module $initPath -Force
+    initialise
+} else {
+    Write-Host "Failed to initialise shell" -ForegroundColor Red
+    Write-Host "init.psm1 not found in \modules\shelldata" -ForegroundColor Yellow
+}
+

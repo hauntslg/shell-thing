@@ -13,7 +13,7 @@ function banner {
         [switch]$open
     )
 
-    if (-not $global:projectDirectory) {
+    if (-not $global:pref.Settings.projectDirectory) {
         Write-Host "Project directory not found" -ForegroundColor Red
         Write-Host "Your .ini likely does not have the correct directory" -ForegroundColor Yellow
     } else {
