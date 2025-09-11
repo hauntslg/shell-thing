@@ -1,7 +1,7 @@
 # Creates basic commands for creating and modifying banners
 function banner {
     param (
-        [Parameter(Position = 1)]
+        [Parameter(Position = 0)]
         [ValidateSet("add", "edit", "remove", "list", "set", "view", "directories")]
         [string]$action = "view",
 
