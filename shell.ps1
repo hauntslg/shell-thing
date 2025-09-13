@@ -1,6 +1,4 @@
-﻿# TODO: In initialisation, the banners are still being written within initialisation. Move that to banner.psm1
-#       When importing modules, make "Join-Path $modulePath "$moduleName.psm1"" one variable
-#       When importing modules, try using module objects instead of keys + strings
+﻿# TODO: 
 #       comment. i'm gonna hate when i get around to it, but i gotta comment this shit
 
 # # window title
@@ -24,7 +22,7 @@ function shell {
 
                 "cd" { Set-Location $global:pref.Settings.projectDirectory }
 
-                Default { Write-Host "Project Directory:   $global:pref.Settings.projectDirectory" -ForegroundColor Yellow }
+                Default { Write-Host "Project Directory:   $($global:pref.Settings.projectDirectory)" -ForegroundColor Yellow }
             }
         } else {
             Write-Host "if you see this error, wtf did you do :sob:" -ForegroundColor Red
@@ -137,6 +135,7 @@ function shell {
 }
 
 # Startup
+$global:prefPath = Join-Path $PSScriptRoot "data\pref.ini"
 $shellDataPath = Join-Path $PSScriptRoot "modules\shelldata"
 $initPath = Join-Path $shellDataPath "init.psm1"
 if (Test-Path $initPath) {

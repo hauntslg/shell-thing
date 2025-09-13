@@ -12,18 +12,13 @@ catch {
 
 # If dependencies are present, attempt to get data and declare globals
 if ($dependenciesPresent) {
-    $global:prefPath = Join-Path $env:APPDATA 'shell\pref.ini'
-
     # Check if .ini file exists, and create it if it doesn't
+    # .ini location is defined in shell.ps1
     if (!(Test-Path $global:prefPath)) {
         $projectLocation = $global:pref.Settings.projectDirectory
         $global:pref = @{
             Settings = @{
                 projectDirectory = $projectLocation
-
-                # Move these into their own modules
-                bannerDirectory = Join-Path $projectLocation "data/banners"
-                currentBanner = "banner.txt"
             }
             ShellModules = @{}
         }

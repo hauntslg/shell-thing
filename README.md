@@ -34,8 +34,4 @@ i'm working on it-
 Write help commands for each command
 Shell is still based in $HOME and must remain in $HOME (change this)
 > i may have changed this but i genuinely don't remember
-i genuinely don't remember how i wrote navvi, maybe write that again-
 change `init editOrder`
-Move /data into $env:APPDATA/shell
-add Node to dependencies
-add python to dependencies
