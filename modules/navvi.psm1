@@ -82,7 +82,7 @@ function navvi {
             Write-Host "Saved '$alias' as '$location'" -ForegroundColor Yellow
         }
 
-        "rem" {
+        "rm" {
             if ($aliases.ContainsKey($alias)) {
                 $aliases.Remove($alias)
                 $aliases | ConvertTo-Json -Depth 2 | Set-Content -Encoding UTF8 $jsonFile
@@ -94,7 +94,13 @@ function navvi {
 
         Default { 
             if ($aliases.ContainsKey($action)) {
+                # Go to saved location  
                 Set-Location -Path $aliases[$action]
+
+                # cd from saved location to relative location
+                if ($alias) {
+                    Set-Location $alias
+                }
             } else {
                 Write-Host "Alias '$action' not found." -ForegroundColor Red 
             }
