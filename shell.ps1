@@ -24,7 +24,8 @@ function shell {
 
                 Default { Write-Host "Project Directory:   $($global:pref.Settings.projectDirectory)" -ForegroundColor Yellow }
             }
-        } else {
+        }
+        else {
             Write-Host "if you see this error, wtf did you do :sob:" -ForegroundColor Red
             Write-Host "Test-Path `$global:pref.Settings.projectDirectory failed" -ForegroundColor Yellow
         }
@@ -57,13 +58,15 @@ function shell {
                 # if the user does not have visual studio code / the "code" command
                 if (Get-Command "code" -ErrorAction SilentlyContinue) {
                     code $projectFile
-                } else {
+                }
+                else {
                     Write-Host "It appears that you do not have Visual Studio Code installed" -ForegroundColor Red
                     Write-Host "If it is already installed open VSCode and press Ctrl + Shift + P" -ForegroundColor Yellow
                     Write-Host "Run this: Shell Command: install 'code' command in PATH" -ForegroundColor Yellow
                     Write-Host "It should do the rest itself. then you can restart your terminal" -ForegroundColor Yellow
                 }
-            } else {
+            }
+            else {
                 Write-Host "if you see this error, i blame you for this" -ForegroundColor Red
             }
         }
@@ -101,7 +104,8 @@ function shell {
                     $missingModuleCount ++
                     $missingModules += $module
                     Write-Host "Missing dependency: $module" -ForegroundColor Red
-                } else {
+                }
+                else {
                     Write-Host "$module is present" -ForegroundColor Yellow
                 }
             }
@@ -109,7 +113,8 @@ function shell {
             # If dependencies are missing, inform user and ask if they want to install them
             if ($missingModuleCount -eq 0) {
                 Write-Host "No missing dependencies found" -ForegroundColor Green
-            } else {
+            }
+            else {
                 Write-Host "$missingModuleCount missing dependencies found" -ForegroundColor Red
                 Write-Host "Install them now? [Y]/[N]" -ForegroundColor Yellow
                 $response = Read-Host
@@ -120,7 +125,8 @@ function shell {
                     try {
                         Install-Module -Name $module -Force -Scope CurrentUser
                         Write-Host "$module installed successfully" -ForegroundColor Green
-                    } catch {
+                    }
+                    catch {
                         Write-Host "$module failed to install" -ForegroundColor Red
                     }
                 }
@@ -129,7 +135,6 @@ function shell {
 
         Default {
             Write-Host "Command not found" -ForegroundColor Red
-            Write-Host "Type in `"Invoke-ShellHelp`" for a list of commands" -ForegroundColor Yellow
         }
     }
 }
@@ -141,7 +146,8 @@ $initPath = Join-Path $shellDataPath "init.psm1"
 if (Test-Path $initPath) {
     Import-Module $initPath -Force
     initialise
-} else {
+}
+else {
     Write-Host "Failed to initialise shell" -ForegroundColor Red
     Write-Host "init.psm1 not found in \modules\shelldata" -ForegroundColor Yellow
 }

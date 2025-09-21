@@ -16,26 +16,29 @@ function banner {
     if (-not $global:pref.Settings.projectDirectory) {
         Write-Host "Project directory not found" -ForegroundColor Red
         Write-Host "Your .ini likely does not have the correct directory" -ForegroundColor Yellow
-    } else {
-    # find currently set banner
-    $bannerFile = $global:pref.Settings.currentBanner
-    # find banners location, create it if it doesn't exist
-    $bannerDirectory = Join-Path $global:pref.Settings.projectDirectory "data/banners"
-    if(!(Test-Path $bannerDirectory)) {
-        New-Item $bannerDirectory -ItemType Directory
-        Write-Host 'New banner data file created'
     }
-    # Define banner
-    $banner =  Join-Path $bannerDirectory $bannerFile
+    else {
+        # find currently set banner
+        $bannerFile = $global:pref.Settings.currentBanner
+        # find banners location, create it if it doesn't exist
+        $bannerDirectory = Join-Path $global:pref.Settings.projectDirectory "data/banners"
+        if (!(Test-Path $bannerDirectory)) {
+            New-Item $bannerDirectory -ItemType Directory
+            Write-Host 'New banner data file created'
+        }
+        # Define banner
+        $banner = Join-Path $bannerDirectory $bannerFile
     }
     switch ($action) {
         "add" {
             if (!(Test-Path $bannerDirectory)) {
                 Write-Host "Banner directory does not exist" -ForegroundColor Red
                 Write-Host "Expected directory: $bannerDirectory" -ForegroundColor Yellow
-            } elseif (!$name) {
+            }
+            elseif (!$name) {
                 Write-Host "Enter a banner name" -ForegroundColor Red
-            } else {
+            }
+            else {
                 $filePath = Join-Path $bannerDirectory "$name.txt"
 
                 if (!(Test-Path $filePath)) {
@@ -45,7 +48,8 @@ function banner {
                         Invoke-Item $filePath
                     }
 
-                } else {
+                }
+                else {
                     Write-Host "Banner $name already exists" -ForegroundColor Red
                 }
             }
@@ -57,14 +61,18 @@ function banner {
                 $target = Join-Path $bannerDirectory "$name.txt"
 
                 if (Test-Path $target) {
-                    Invoke-Item "$name.txt"
-                } else {
+                    Invoke-Item $target
+                }
+                else {
                     Write-Host "Banner $name does not exist" -ForegroundColor Red
                 }
 
-            } elseif (Test-Path $banner) {  #If there is no user input
+            }
+            elseif (Test-Path $banner) {
+                #If there is no user input
                 Invoke-Item $banner
-            }  else {
+            }
+            else {
                 Write-Host "There is no current banner" -ForegroundColor Red
             }
         }
@@ -80,11 +88,13 @@ function banner {
                     Add-Type -AssemblyName Microsoft.VisualBasic
                     [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($target, 'OnlyErrorDialogs', 'SendToRecycleBin')
                     Write-Host "Banner $name sent to trash" -ForegroundColor Yellow
-                } else {
+                }
+                else {
                     Remove-Item $target
                     Write-Host "Banner $name Deleted" -ForegroundColor Yellow
                 }
-            } else {
+            }
+            else {
                 Write-Host "Banner not found" -ForegroundColor Red
             }
         }
@@ -95,7 +105,8 @@ function banner {
             foreach ($item in $list) {
                 if ($item.Extension -eq ".txt") {
                     Write-Host $item.name -ForegroundColor Cyan
-                } else {
+                }
+                else {
                     Write-Host $item.name -ForegroundColor Yellow
                 }
             }
@@ -109,7 +120,8 @@ function banner {
                 $global:pref.Settings.currentBanner = "$name.txt"
                 Export-Ini -InputObject $global:pref -Path $global:prefPath
                 Write-Host "Banner set to $name" -ForegroundColor Yellow
-            } else {
+            }
+            else {
                 Write-Host "Banner $name does not exist" -ForegroundColor Red
             }
         }
@@ -119,16 +131,19 @@ function banner {
             if (-not $name) {
                 if (Test-Path $banner) {
                     Get-Content -Path $banner -Encoding UTF8 | ForEach-Object { Write-Host $_ -ForegroundColor Yellow }
-                } else {
+                }
+                else {
                     Write-Host "banner not found" -ForegroundColor Red
                 }
 
-            # View a selected banner
-            } else {
+                # View a selected banner
+            }
+            else {
                 $target = Join-Path $bannerDirectory "$name.txt"
                 if (Test-Path $target) {
                     Get-Content -Path $target -Encoding UTF8 | ForEach-Object { Write-Host $_ -ForegroundColor Yellow }
-                } else {
+                }
+                else {
                     Write-Host "banner $name not found" -ForegroundColor Red
                 }
             }

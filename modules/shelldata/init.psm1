@@ -62,7 +62,7 @@ function initialise {
         }
 
         Default {
-            # Clear-Host
+            Clear-Host
 
             # Import modules and dependencies
             $importScript = Join-Path $PSScriptRoot "initialise\import.ps1"

@@ -1,4 +1,4 @@
-data/pref.ini
+data\pref.ini
 data/navvi/navvi.json
 data/banners/*
 !data/banners/banner.txt
