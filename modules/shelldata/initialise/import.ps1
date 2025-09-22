@@ -15,10 +15,9 @@ if ($dependenciesPresent) {
     # Check if .ini file exists, and create it if it doesn't
     # .ini location is defined in shell.ps1
     if (!(Test-Path $global:prefPath)) {
-        $projectLocation = $global:pref.Settings.projectDirectory
         $global:pref = @{
             Settings = @{
-                projectDirectory = $projectLocation
+                projectDirectory = $env:SHELL_MODULE_MANAGER
             }
             ShellModules = @{}
         }
