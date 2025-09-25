@@ -62,13 +62,13 @@ function initialise {
         }
 
         Default {
-            Clear-Host
+             Clear-Host
 
             # Import modules and dependencies
             $importScript = Join-Path $PSScriptRoot "initialise\import.ps1"
             . $importScript
 
-            if ($global:pref.Settings.projectDirectory) {
+            if ($global:projectDirectory) {
                 $moduleEntries = @($global:pref.ShellModules.GetEnumerator()) # changed this to an array
                 $allModules = $moduleEntries | Sort-Object { [int]$_.Value }
 
@@ -81,7 +81,7 @@ function initialise {
                     }
 
                 foreach ($moduleEntry in $allModules) {
-                    $modulePath = Join-Path $global:pref.Settings.projectDirectory "modules\$($moduleEntry.Key).psm1"
+                    $modulePath = Join-Path $global:projectDirectory "modules\$($moduleEntry.Key).psm1"
 
                     Import-Module $modulePath -Force -Global
                     $modObj = Get-Module $moduleEntry.Key

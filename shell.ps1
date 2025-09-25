@@ -16,18 +16,18 @@ function shell {
     )
 
     function _ShellDirectory {
-        if (Test-Path $global:pref.Settings.projectDirectory) {
+        if (Test-Path $global:projectDirectory) {
             switch ($altAction) {
-                "open" { Invoke-Item $global:pref.Settings.projectDirectory }
+                "open" { Invoke-Item $global:projectDirectory }
 
-                "cd" { Set-Location $global:pref.Settings.projectDirectory }
+                "cd" { Set-Location $global:projectDirectory }
 
-                Default { Write-Host "Project Directory:   $($global:pref.Settings.projectDirectory)" -ForegroundColor Yellow }
+                Default { Write-Host "Project Directory:   $($global:projectDirectory)" -ForegroundColor Yellow }
             }
         }
         else {
             Write-Host "if you see this error, wtf did you do :sob:" -ForegroundColor Red
-            Write-Host "Test-Path `$global:pref.Settings.projectDirectory failed" -ForegroundColor Yellow
+            Write-Host "Test-Path `$global:projectDirectory failed" -ForegroundColor Yellow
         }
     }
 
@@ -52,7 +52,7 @@ function shell {
     switch ($action) {
         # Opens startup.ps1 in visual studio code
         "code" {
-            $projectFile = $global:pref.Settings.projectDirectory
+            $projectFile = $global:projectDirectory
             # If THIS FILE exists in the project directory
             if (Test-Path $projectFile) {
                 # if the user does not have visual studio code / the "code" command
@@ -79,7 +79,7 @@ function shell {
         "globals" {
             Write-Host "prefPath:                   $global:prefPath" -ForegroundColor Yellow
             Write-Host "pref:                       $global:pref" -ForegroundColor Yellow
-            Write-Host "projectDirectory:           $global:pref.Settings.projectDirectory" -ForegroundColor Yellow
+            Write-Host "projectDirectory:           $global:projectDirectory" -ForegroundColor Yellow
             Write-Host "shellModules:               $global:shellModules" -ForegroundColor Yellow
         }
 
@@ -140,6 +140,7 @@ function shell {
 }
 
 # Startup
+$global:projectDirectory = $PSScriptRoot
 $global:prefPath = Join-Path $PSScriptRoot "data\pref.ini"
 $shellDataPath = Join-Path $PSScriptRoot "modules\shelldata"
 $initPath = Join-Path $shellDataPath "init.psm1"

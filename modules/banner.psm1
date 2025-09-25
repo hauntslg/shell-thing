@@ -13,7 +13,7 @@ function banner {
         [switch]$open
     )
 
-    if (-not $global:pref.Settings.projectDirectory) {
+    if (-not $global:projectDirectory) {
         Write-Host "Project directory not found" -ForegroundColor Red
         Write-Host "Your .ini likely does not have the correct directory" -ForegroundColor Yellow
     }
@@ -21,7 +21,7 @@ function banner {
         # find currently set banner
         $bannerFile = $global:pref.Settings.currentBanner
         # find banners location, create it if it doesn't exist
-        $bannerDirectory = Join-Path $global:pref.Settings.projectDirectory "data/banners"
+        $bannerDirectory = Join-Path $global:projectDirectory "data/banners"
         if (!(Test-Path $bannerDirectory)) {
             New-Item $bannerDirectory -ItemType Directory
             Write-Host 'New banner data file created'

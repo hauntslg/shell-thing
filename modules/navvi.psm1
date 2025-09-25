@@ -11,11 +11,11 @@ function navvi {
         [string]$location
     )
 
-    $jsonFile = Join-Path $global:pref.Settings.projectDirectory "data/navvi/navvi.json"
+    $jsonFile = Join-Path $global:projectDirectory "data/navvi/navvi.json"
 
     # Make sure the data file exists and is valid
     if (!(Test-Path $jsonFile)) {
-        $dataDir = Join-Path $global:pref.Settings.projectDirectory "data/navvi"
+        $dataDir = Join-Path $global:projectDirectory "data/navvi"
         if (!(Test-Path $dataDir)) {
             New-Item -ItemType Directory -Path $dataDir -Force | Out-Null
         }

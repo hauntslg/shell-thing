@@ -31,7 +31,7 @@ function ytdownload {
     }
 
     # Get yt-dlp.exe
-    $ytdlp = Join-Path $global:pref.Settings.projectDirectory "data\ytdownload\yt-dlp.exe"
+    $ytdlp = Join-Path $global:projectDirectory "data\ytdownload\yt-dlp.exe"
 
     # Check and modify $command for aliases
     switch -Wildcard ($command) {

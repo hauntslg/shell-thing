@@ -17,7 +17,7 @@ if ($dependenciesPresent) {
     if (!(Test-Path $global:prefPath)) {
         $global:pref = @{
             Settings = @{
-                projectDirectory = $env:SHELL_MODULE_MANAGER
+                projectDirectory = $global:projectDirectory
             }
             ShellModules = @{}
         }
@@ -31,7 +31,7 @@ if ($dependenciesPresent) {
     }
 
     # Find modules in project directory
-    $modulePath = Join-Path $global:pref.Settings.projectDirectory "modules"
+    $modulePath = Join-Path $global:projectDirectory "modules"
     $modules = Get-ChildItem -Path $modulePath -Filter *.psm1
 
     # New Modules

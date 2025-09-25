@@ -9,10 +9,10 @@ function caption {
     )
     
     # Find the virtual environment 
-    $venvPy = Join-Path $global:pref.Settings.projectDirectory ".\tools\imagecaptioner\venv\Scripts\activate"
+    $venvPy = Join-Path $global:projectDirectory ".\tools\imagecaptioner\venv\Scripts\activate"
 
     # Find script
-    $scriptPath = Join-Path $global:pref.Settings.projectDirectory ".\tools\imagecaptioner\ImageCaptioner.py" 
+    $scriptPath = Join-Path $global:projectDirectory ".\tools\imagecaptioner\ImageCaptioner.py" 
 
     # Execute the command
     if (-not $outputName.EndsWith(".png")) {
