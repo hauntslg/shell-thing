@@ -26,6 +26,10 @@ function sybau {
         return
     }
 
+    function _ExpandEnvVars($path) {
+        return [Environment]::ExpandEnvironmentVariables($path)
+    }
+
     function _CleanFile {
         param ( [string]$file )
         
@@ -42,9 +46,9 @@ function sybau {
             $lines = Get-Content $resolvedPath
             
             $cleanedLines = $lines |
-                Select-Object -Unique | # Clear duplicates
-                Where-Object { $_.Trim() -ne "" } | # Clear all empty lines
-                Where-Object { $_ -notmatch '^\s*rm\b' } # Clear all lines starting with "rm"
+            Select-Object -Unique | # Clear duplicates
+            Where-Object { $_.Trim() -ne "" } | # Clear all empty lines
+            Where-Object { $_ -notmatch '^\s*rm\b' } # Clear all lines starting with "rm"
             
             $cleanedLines | Set-Content $resolvedPath
 
@@ -82,10 +86,12 @@ function sybau {
     }
 
     if ($bookmarks.PSObject.Properties.Name -contains $action) {
-        # $action = bookmark value where file = key
-        _CleanFile($bookmarks.$action)
+        $expandedPath = _ExpandEnvVars($bookmarks.$action)
+        Write-Host "Expanded Path: $expandedPath" -ForegroundColor Cyan
+        _CleanFile($expandedPath)
         return
-    } else {
+    }
+    else {
         Write-Host "$action not in list" -ForegroundColor Red
     }
 

@@ -1,4 +1,4 @@
 {
-    "shada": "C:\\Users\\GGPC\\AppData\\Local\\nvim-data\\shada",
-    "history": "C:\\Users\\GGPC\\AppData\\Roaming\\Microsoft\\Windows\\PowerShell\\PSReadLine\\ConsoleHost_history.txt"
+    "shada": "%LOCALAPPDATA%\\nvim-data\\shada",
+    "history": "%APPDATA%\\Microsoft\\Windows\\PowerShell\\PSReadLine\\ConsoleHost_history.txt"
 }
