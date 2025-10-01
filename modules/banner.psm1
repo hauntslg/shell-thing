@@ -2,7 +2,6 @@
 function banner {
     param (
         [Parameter(Position = 0)]
-        [ValidateSet("add", "edit", "remove", "list", "set", "view", "directories")]
         [string]$action = "view",
 
         [Parameter(Position = 1)]
@@ -154,6 +153,29 @@ function banner {
             Write-Host "banner:                     $banner" -ForegroundColor Yellow
             Write-Host "bannerDirectory:            $bannerDirectory" -ForegroundColor Yellow
             Write-Host "bannerFile:                 $bannerFile" -ForegroundColor Yellow
+        }
+
+        Default {
+            # Default
+            if (-not $action) {
+                if (Test-Path $banner) {
+                    Get-Content -Path $banner -Encoding UTF8 | ForEach-Object { Write-Host $_ -ForegroundColor Yellow }
+                }
+                else {
+                    Write-Host "banner not found" -ForegroundColor Red
+                }
+
+                # View a selected banner
+            }
+            else {
+                $target = Join-Path $bannerDirectory "$action.txt"
+                if (Test-Path $target) {
+                    Get-Content -Path $target -Encoding UTF8 | ForEach-Object { Write-Host $_ -ForegroundColor Yellow }
+                }
+                else {
+                    Write-Host "banner $action not found" -ForegroundColor Red
+                }
+            }
         }
     }
 }

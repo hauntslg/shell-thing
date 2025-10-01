@@ -1,21 +1,21 @@
 Set-Alias -Name ytd -Value ytdownload
 <#
-            .SYNOPSIS
-            Basic functionality for yt-dlp
-            https://github.com/yt-dlp/yt-dlp
+    .SYNOPSIS
+    Basic functionality for yt-dlp
+    https://github.com/yt-dlp/yt-dlp
 
-            .DESCRIPTION
-            Downloads a youtube video into your current directory
+    .DESCRIPTION
+    Downloads a youtube video into your current directory
 
-            .PARAMETER Link
-            The youtube link
+    .PARAMETER Link
+    The youtube link
 
-            .PARAMETER Command
-            The command / download type
+    .PARAMETER Command
+    The command / download type
 
-            .EXAMPLE
-            ytd https://www.youtube.com/watch?v=SgMfVnEm4a4 mp3
-        #>
+    .EXAMPLE
+    ytd https://www.youtube.com/watch?v=SgMfVnEm4a4 mp3
+#>
 function ytdownload {
     param (
         [Parameter(Position = 0)]
@@ -32,6 +32,12 @@ function ytdownload {
 
     # Get yt-dlp.exe
     $ytdlp = Join-Path $global:projectDirectory "data\ytdownload\yt-dlp.exe"
+
+    # non download commands
+    switch ($link) {
+        "u" { & $ytdlp -U; return }
+        "update" { & $ytdlp -U; return }
+    }
 
     # Check and modify $command for aliases
     switch -Wildcard ($command) {

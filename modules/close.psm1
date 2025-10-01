@@ -1,3 +1,4 @@
+Set-Alias -Name :q -Value close
 function close {
     <#
     .SYNOPSIS
