@@ -21,12 +21,14 @@ function ytdownload {
         [Parameter(Position = 0)]
         [string]$link,
         [Parameter(Position = 1)]
-        [string]$command
+        [string]$command,
+        [Parameter(Position = 2)]
+        [string]$fileName
     )
     
     if (!$link) {
         Write-Host "Youtube link not provided" -ForegroundColor Red
-        Write-Host "Syntax: ytdlp [youtube link] [command]" -ForegroundColor Yellow
+        Write-Host "Syntax: ytdlp [youtube link] [file type / command] [outmut file name]" -ForegroundColor Yellow
         return
     }
 
@@ -47,27 +49,31 @@ function ytdownload {
         "--list*" { & $ytdlp $link --list-formats; return }
     }
 
+    $arguments = "-f "
+
     switch -Regex ($command) {
         "^mp3$" {
-            & $ytdlp $link -f bestaudio --extract-audio --audio-format mp3
-            return
+            $arguments += "bestaudio --extract-audio --audio-format mp3"
         }
 
         "^aac$" {
-            & $ytdlp $link -f bestaudio --extract-audio --audio-format aac
-            return
+            $arguments += "bestaudio --extract-audio --audio-format aac"
         }
         
         "^mp4$" {
-            & $ytdlp $link -f bestvideo+bestaudio --remux-video mp4
-            return
+            $arguments += "bestvideo+bestaudio --remux-video mp4"
         }
         
         "^mkv$" {
-            & $ytdlp $link -f bestvideo+bestaudio --remux-video mkv
-            return
+            $arguments += "bestvideo+bestaudio --remux-video mkv"
         }
         
         Default { & $ytdlp $link --list-formats; return } 
     }
+
+    if ($fileName) {
+        $arguments += " -o $filename"
+    }
+
+    Write-Host "$ytdlp $link $arguments"
 }
