@@ -3,4 +3,4 @@ data/navvi/navvi.json
 data/banners/*
 !data/banners/banner.txt
 !data/banners/sybau.txt
-
+modules/spongebob.psm1

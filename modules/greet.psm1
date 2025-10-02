@@ -7,17 +7,26 @@ $greetings = @(
     "here we are."
     "welcome back."
     "hello again."
+    "something new?"
+    "don't break anything. again."
+    "what is it this time?"
+    "back so soon?"
+    "stop trying to make me say 'sigma'."
 )
 
 function greet {
     param (
         [Parameter(Position = 0)]
-        [ValidateSet("add", "edit", "remove", "list", "set", "view", "directories")]
-        [string]$display
+        # [ValidateSet("add", "edit", "remove", "list", "set", "view", "directories")]
+        [string]$action
     )
 
-    switch ($display) {
+    if (-not $action) {
+        Write-Host ($greetings | Get-Random) -ForegroundColor Yellow
+        return
+    }
 
+    switch ($action) {
 
         "list" { 
             foreach ($i in $greetings) {
@@ -26,7 +35,7 @@ function greet {
         }
 
         Default {
-            Write-Host ($greetings | Get-Random) -ForegroundColor Yellow
+            Write-Host "Action '$action' not found" -ForegroundColor Red
         }
     }
 }
