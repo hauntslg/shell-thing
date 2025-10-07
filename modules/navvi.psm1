@@ -11,7 +11,8 @@ function navvi {
         [string]$location
     )
 
-    $jsonFile = Join-Path $global:projectDirectory "data/navvi/navvi.json"
+    $dataFilePath = Join-Path $global:projectDirectory "data/navvi"
+    $jsonFile = Join-Path $dataFilePath "navvi.json"
 
     # Make sure the data file exists and is valid
     if (!(Test-Path $jsonFile)) {
@@ -25,29 +26,34 @@ function navvi {
 
     # Turn the json data into a readable format for reading and writing
     function _GetNavviAliases {
-        param ($jsonFilePath)
+        param ($dataFilePath)
 
-        $aliases = @{}
-        if (Test-Path $jsonFilePath) {
-            $content = Get-Content -Raw -Path $jsonFilePath
+        $entries = @()
+        if (Test-Path $dataFilePath) {
+            $content = Get-Content -Raw -Path $dataFilePath
             if ($content.Trim()) {
                 try {
-                    $temp = $content | ConvertFrom-Json
-                    if ($temp -is [PSCustomObject]) {
-                        foreach ($key in $temp.PSObject.Properties.Name) {
-                            $aliases[$key] = $temp.$key
-                        }
-                    }
+                    $entries = $content | ConvertFrom-Json
                 } catch {
                     Write-Host "Failed to read alias data." -ForegroundColor Red
                 }
             }
         }
-        return $aliases
+        return $entries
     }
 
-    # This line was originally in every switch action
-    $aliases = _GetNavviAliases $jsonFile
+    function _AliasesToHashtbl {
+        param ($entries)
+        $htbl = @{}
+        foreach ($e in $entries) {
+            $htbl[$e.Name] = $e.Path
+        }
+        return $htbl
+    }
+
+    $entries = _GetNavviAliases $jsonFile
+    $aliases = _AliasesToHashtbl $entries
+
     switch ($action) {
         
         # In case an alias name matches one of the commands
@@ -60,10 +66,10 @@ function navvi {
         }
 
         "list" {
-            if ($aliases.Count -eq 0) {
+            if ($entries.Count -eq 0) {
                 Write-Host "No aliases found." -ForegroundColor Red
             } else {
-                $aliases.GetEnumerator() | Format-Table Name, Value -AutoSize
+                $entries | Format-Table Name, Path -AutoSize
             }
         }
 
@@ -73,19 +79,21 @@ function navvi {
                 $location = (Get-Location).Path
             }
 
-            # Add or update the alias
-            $aliases[$alias] = $location
+            # Remove existing entry with matching name
+            $entries = $entries | Where-Object { $_.Name -ne $alias }
+
+            # Add new entry
+            $entries += [PSCustomObject]@{ Name = $alias; Path = $location }
 
             # Save back to JSON
-            $aliases | ConvertTo-Json -Depth 2 | Set-Content -Encoding UTF8 $jsonFile
-
+            $entries | ConvertTo-Json -Depth 2 | Set-Content -Encoding UTF8 $jsonFile
             Write-Host "Saved '$alias' as '$location'" -ForegroundColor Yellow
         }
 
         "rm" {
-            if ($aliases.ContainsKey($alias)) {
-                $aliases.Remove($alias)
-                $aliases | ConvertTo-Json -Depth 2 | Set-Content -Encoding UTF8 $jsonFile
+            $initialCount = $entries.Count
+            $entries = $entries | Where-Object { $_.Name -ne $alias }
+            if ($entries.Count -lt $initialCount) {
                 Write-Host "Removed alias '$alias'" -ForegroundColor Yellow
             } else {
                 Write-Host "Alias '$alias' does not exist." -ForegroundColor Red
@@ -93,6 +101,16 @@ function navvi {
         }
 
         Default { 
+            # Open menu on default (.exe in data folder)
+            if (-not $action) {
+                $returnedPath = & (Join-Path $dataFilePath "navvi.exe")
+                $returnedPath = $returnedPath | Where-Object { $_.Trim() } | Select-Object -Last 1
+
+                if ($returnedPath) { Set-Location -Path $returnedPath }
+                return
+            }
+
+            # Quick nav
             if ($aliases.ContainsKey($action)) {
                 # Go to saved location  
                 Set-Location -Path $aliases[$action]
