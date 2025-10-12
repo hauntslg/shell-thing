@@ -79,6 +79,16 @@ function navvi {
                 $location = (Get-Location).Path
             }
 
+            # Resolve relative paths like "." or "..\subdir"
+            if ($location -match '^[.]{1,2}(\\|/)?') {
+                try {
+                    $location = Resolve-Path $location | Select-Object -ExpandProperty Path
+                } catch {
+                    Write-Host "Could not resolve relative path: $location" -ForegroundColor Red
+                        return
+                }
+            }
+
             # Remove existing entry with matching name
             $entries = $entries | Where-Object { $_.Name -ne $alias }
 
