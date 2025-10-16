@@ -7,7 +7,6 @@
 function shell {
     param (
         [Parameter(Position = 0)]
-        [ValidateSet("code", "directory", "dir", "globals", "preferences", "pref", "dependencies")]
         [string]$action,
 
         [Parameter(Position = 1)]
@@ -50,24 +49,43 @@ function shell {
     }
     
     switch ($action) {
-        # Opens startup.ps1 in visual studio code
+        # Opens project
         "code" {
-            $projectFile = $global:projectDirectory
-            # If THIS FILE exists in the project directory
-            if (Test-Path $projectFile) {
-                # if the user does not have visual studio code / the "code" command
-                if (Get-Command "code" -ErrorAction SilentlyContinue) {
-                    code $projectFile
-                }
-                else {
-                    Write-Host "It appears that you do not have Visual Studio Code installed" -ForegroundColor Red
-                    Write-Host "If it is already installed open VSCode and press Ctrl + Shift + P" -ForegroundColor Yellow
-                    Write-Host "Run this: Shell Command: install 'code' command in PATH" -ForegroundColor Yellow
-                    Write-Host "It should do the rest itself. then you can restart your terminal" -ForegroundColor Yellow
-                }
+            $global:projectDirectory
+            # If the project directory exists
+            if (!(Test-Path $global:projectDirectory)) {
+                Write-Host "if you see this error, literally how" -ForegroundColor Red
+                Write-Host "Project directory not found" -ForegroundColor Yellow
+                return
+            }
+            
+            # if the user does not have visual studio code / the "code" command
+            if (Get-Command "code" -ErrorAction SilentlyContinue -CommandType Application) {
+                code $global:projectDirectory
             }
             else {
-                Write-Host "if you see this error, i blame you for this" -ForegroundColor Red
+                Write-Host "Visual Studio Code is not installed" -ForegroundColor Red
+                Write-Host "If it is already installed open VSCode and press Ctrl + Shift + P" -ForegroundColor Yellow
+                Write-Host "Run this: Shell Command: install 'code' command in PATH" -ForegroundColor Yellow
+                Write-Host "It should do the rest itself. then you can restart your terminal" -ForegroundColor Yellow
+            }
+        }
+
+        # Opens project
+        "nvim" {
+            # If the project directory exists
+            if (!(Test-Path $global:projectDirectory)) {
+                Write-Host "if you see this error, literally how" -ForegroundColor Red
+                Write-Host "Project directory not found" -ForegroundColor Yellow
+                return
+            }
+
+            # if the user does not have neovim
+            if (Get-Command "nvim" -ErrorAction SilentlyContinue) {
+                nvim $global:projectDirectory
+            }
+            else {
+                Write-Host "Neovim is not installed" -ForegroundColor Red
             }
         }
 
@@ -80,7 +98,6 @@ function shell {
             Write-Host "prefPath:                   $global:prefPath" -ForegroundColor Yellow
             Write-Host "pref:                       $global:pref" -ForegroundColor Yellow
             Write-Host "projectDirectory:           $global:projectDirectory" -ForegroundColor Yellow
-            Write-Host "shellModules:               $global:shellModules" -ForegroundColor Yellow
         }
 
         "preferences" { _ShellPreferences }
