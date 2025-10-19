@@ -1,4 +1,3 @@
-Set-Alias -Name :q -Value close
 function close {
     <#
     .SYNOPSIS
@@ -13,3 +12,5 @@ function close {
     Start-Process node $player -NoNewWindow -Wait
     exit
 }
+
+function :q { exit }
