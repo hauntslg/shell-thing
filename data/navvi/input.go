@@ -1,6 +1,11 @@
 package main
 
-import "github.com/gdamore/tcell/v2"
+import (
+	"fmt"
+	"os"
+
+	"github.com/gdamore/tcell/v2"
+)
 
 // Handle key input for search and navigation
 func handleInput(ev *tcell.EventKey, screen tcell.Screen, entries []NavEntry, filteredEntries *[]NavEntry, selected *int, searchMode *bool, searchQuery *string) bool {
@@ -17,7 +22,9 @@ func handleInput(ev *tcell.EventKey, screen tcell.Screen, entries []NavEntry, fi
 
 	case tcell.KeyEnter:
 		if len(*filteredEntries) > 0 {
-			println(expandPath((*filteredEntries)[*selected].Path))
+			screen.Fini()
+			fmt.Println(expandPath((*filteredEntries)[*selected].Path))
+			os.Stdout.Sync()
 		}
 		return true // exit program
 

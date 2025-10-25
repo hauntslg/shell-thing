@@ -32,10 +32,11 @@ func main() {
 		}
 
 		exit := handleInput(keyEvent, screen, entries, &filteredEntries, &selected, &searchMode, &searchQuery)
-		draw(screen, entries, filteredEntries, selected, searchMode, searchQuery)
 
 		if exit {
 			break
 		}
+
+		draw(screen, entries, filteredEntries, selected, searchMode, searchQuery)
 	}
 }
