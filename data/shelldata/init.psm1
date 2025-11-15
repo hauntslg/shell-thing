@@ -1,3 +1,27 @@
+# TODO:
+#       $set has no validation : can be int or string
+#           $set is set up as a [string], so it will never check as an integer
+#       Import-Ini : This one is actually fine
+#           Get-IniContent and Out-IniFile are from PsIni 3
+#           The current latest version is PsIni 4 - it's just poorly documented
+#           Import-Ini and Export-Ini are the new functions
+#       _LazyUpdate uses $using:modPath in a scriptblock : I'm on ps7+ so this is fine, but i'll definitely note that
+#           maybe if i can't do a fix for 5, i'll do a version check
+#       continue is illegal inside switch : i actually did not know that
+#           use break instead or restructure
+#       the module is loaded and executed : comment says load order
+#           never sorted by integer value OH that's what i forgot
+#       default to 0 and let the user change later : easier to deal with than defaulting every module to lazy
+#       only the lazy function is removed, not the entry in the ini
+#           hwat
+#           oh that's probably on update? that's probably why it won't let me change the load value
+#           ,,, idk i forgor
+#       i called Export-Ini twice
+#       check message colours
+#       Import-Module can throw an error : Set up try{}catch{} blocks
+#       there's no return value : return a hashtable with loaded, added, removed arrays
+#           oh hwait that makes update messages so much easier :sob:
+
 function InitialiseModules {
 param (
         [Parameter(Position = 0)]

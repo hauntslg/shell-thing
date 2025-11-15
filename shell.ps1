@@ -1,3 +1,25 @@
+# TODO:
+#       Parameter Validation (ValidateSet)
+#       update on "forgot to write this"
+#       mods default case
+#       mods calls : add a guard if alt action isn't given
+#       set case : set up switch case
+#       init is imported twice : once in init, once in mods
+#       Remove-Module init only done in init block : Never removed in shell mods
+#           ^^ perform a switch before the main switch block to see if init is required
+#           save a boolean to check if init should be removed
+#       update default case from debug : however, "psmm is working yippee" is funny though
+#           just make it a help message :sob:
+#       move global variable initialisation to top
+#
+#       .EXAMPLE messages
+#       unit tests : hwait why didn't i think of that
+#       versioning : yes i should probably do that :sob:
+#       logging : optional -Verbose stream
+#           ,, i hadn't even considered that
+#       i will be keeping projectDir and prefPath since my other modules do require those variables
+#           however, i am considering doing a rewrite so they don't need them
+
 function shell {
     <#
         .SYNOPSIS
@@ -63,7 +85,7 @@ param (
         }
 
         "mods" {
-            $moduleDir = Join-Path $global:projectDir "$modules"
+            $moduleDir = Join-Path $global:projectDir "modules"
             Import-Module (Join-Path $global:projectDir ".\data\shelldata\init.psm1")
 
             if (!(Test-Path $moduleDir)) {
