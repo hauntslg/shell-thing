@@ -1,5 +1,6 @@
 ﻿# TODO: 
 #       comment. i'm gonna hate when i get around to it, but i gotta comment this shit
+#       breaking news, i never commented any of it
 
 # # window title
 # $host.ui.RawUI.WindowTitle = "Shell"
