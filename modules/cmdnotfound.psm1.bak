@@ -1,0 +1,4 @@
+$ExecutionContext.InvokeCommand.CommandNotFoundAction = {
+    $img = Join-Path $global:projectDirectory "data\cmdnotfound\pointandlaugh.png"
+    viewitem $img
+}
