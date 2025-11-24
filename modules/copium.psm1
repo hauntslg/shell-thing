@@ -3,7 +3,8 @@ function what {
 }
 
 function shit {
-    Write-Host "sobbing and crying" -ForegroundColor Cyan
+    $img = Join-Path $global:projectDirectory "data\img\pointandlaugh.png"
+    viewitem $img
 }
 
 function pogger {
