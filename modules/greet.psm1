@@ -11,7 +11,6 @@ $greetings = @(
     "don't break anything. again."
     "what is it this time?"
     "back so soon?"
-    "stop trying to make me say 'sigma'."
 )
 
 function greet {
