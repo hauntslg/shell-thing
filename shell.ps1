@@ -70,6 +70,7 @@ param (
                 return
             }
 
+            # test this later
             if ($altAction -eq "cls") { Clear-Host }
 
             Import-Module (Join-Path $global:projectDir ".\data\shelldata\init.psm1")
@@ -85,21 +86,42 @@ param (
         }
 
         "mods" {
-            $moduleDir = Join-Path $global:projectDir "modules"
-            Import-Module (Join-Path $global:projectDir ".\data\shelldata\init.psm1")
-
-            if (!(Test-Path $moduleDir)) {
-                Write-Host "Module directory not found" -ForegroundColor Red
+            # Display help message on invalid syntax
+            if ([string]::IsNullOrWhiteSpace($altAction) -or [string]::IsNullOrWhiteSpace($module)) {
+                Write-Host "Usage:" -ForegroundColor Yellow
+                Write-Host " - shell mods enable <module>" -ForegroundColor Cyan
+                Write-Host " - shell mods disable <module>" -ForegroundColor Cyan
+                Write-Host " - shell mods lazy <module>" -ForegroundColor Cyan
+                Write-Host " - shell mods <integer> <module>" -ForegroundColor Cyan
                 return
             }
 
+            # Prepare modules and module initialisation script
+            $moduleDir = Join-Path $global:projectDir "modules"
+
+            # Make sure all modules are present
+            if (!(Test-Path $moduleDir)) {
+                Write-Host "Modules directory not found" -ForegroundColor Red
+                return
+            }
+
+            # Make sure init script is present and import it
+            if (-not (Get-Command InitialiseModules -ErrorAction SilentlyContinue)) {
+                Write-Host "Initialisation script not found" -ForegroundColor Red
+                Write-Host "no modules can be imported" -ForegroundColor Yellow
+                return
+            }
+            Import-Module (Join-Path $global:projectDir ".\data\shelldata\init.psm1")
+
+            # Send user action to init.psm1
             switch ($altAction) {
                 "enable" { InitialiseModules $altAction $module }
                 "disable" { InitialiseModules $altAction $module }
                 "lazy" { InitialiseModules $altAction $module }
-                { $altAction -is [int] } { InitialiseModules $altAction $module }
+                { $altAction -match '^\d+$'} { InitialiseModules $altAction $module } # If the input is an integer
+
                 Default {
-                    Write-Host "forgot to write this" -ForegroundColor Yellow
+                    Write-Host "Unrecognised Action: $altAction" -ForegroundColor Red
                 }
             }
         }

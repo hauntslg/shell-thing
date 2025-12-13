@@ -22,13 +22,24 @@
 #       there's no return value : return a hashtable with loaded, added, removed arrays
 #           oh hwait that makes update messages so much easier :sob:
 
+# TODO: (the new one)
+# okay update. i removed the function parameters and changed what this is supposed to do
+# the .DESCRIPTION pretty much sums it up
+# basically, rewrite everything :thumbs_up:
+# :dying:
+# and consider changing from pref.ini to pref.json. more convenient
+
 function InitialiseModules {
-param (
-        [Parameter(Position = 0)]
-        [string]$set,
-        [Parameter(Position = 1)]
-        [string]$module
-    )
+    <#
+        .SYNOPSIS
+            Initialises the Shell Module Manager
+
+        .DESCRIPTION
+            Reads pref.ini and loads all modules in the modules/ directory according to user preferences
+
+        .NOTES
+            PSIni is a required dependency for reading pref.ini
+    #>
 
     # Expect both or neither, not either or
     if ([bool]$set -xor [bool]$module) {
@@ -95,7 +106,7 @@ param (
 
             }
 
-            { $set -is [int] } {
+            { $set -match '^\d+$' } {
                 _LazyUpdate rm $module
 
                 if ($set -lt 0) {
@@ -104,7 +115,7 @@ param (
                     Import-Module $module
                 }
 
-                continue
+                break # changed from continue
             }
         }
 
