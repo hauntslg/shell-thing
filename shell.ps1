@@ -15,10 +15,10 @@
 #       .EXAMPLE messages
 #       unit tests : hwait why didn't i think of that
 #       versioning : yes i should probably do that :sob:
-#       logging : optional -Verbose stream
-#           ,, i hadn't even considered that
-#       i will be keeping projectDir and prefPath since my other modules do require those variables
-#           however, i am considering doing a rewrite so they don't need them
+#
+# TODO:
+#       Update other modules to make up for the removal of $global:prefPath (only banner.psm1 i think)
+#       
 
 function shell {
     <#
@@ -56,34 +56,71 @@ param (
         [Parameter(Position = 1)]
         [string]$altAction,
         [Parameter(Position = 2)]
-        [string]$module
+        [string]$module,
+
+        [switch]$detailed,
+        [switch]$silent,
+        [switch]$default,
+        [bool]$cls = $true
     )
 
+    $shellVersion = "0.2.0"
+
+    function _writeInitOutput($initInfo, $initPref) {
+        switch ($initPref) {
+            "default" {
+                foreach ($added in $initInfo.Added) { Write-Host "Added module $added" -ForegroundColor Green }
+                foreach ($removed in $initInfo.Removed) { Write-Host "Removed module $removed" -ForegroundColor Red }
+            }
+
+            "detailed" {
+                foreach ($imported in $initInfo.Imported) { Write-Host "Module $imported Imported" -ForegroundColor Cyan }
+                foreach ($disabled in $initInfo.Disabled) { Write-Host "Module $disabled Disabled" -ForegroundColor Yellow }
+                foreach ($added in $initInfo.Added) { Write-Host "Added module $added" -ForegroundColor Green }
+                foreach ($removed in $initInfo.Removed) { Write-Host "Removed module $removed" -ForegroundColor Red }
+            }
+
+            "silent" {}
+        }
+    }
+
+    $prefPath = Join-Path $global:projectDir "data\shelldata\pref.json"
     switch ($action) {
+        "version" {
+            Write-Host "creative name for a PowerShell Module Manager" -ForegroundColor Yellow
+            Write-Host "version $shellVersion" -ForegroundColor Yellow
+        }
+
         "init" {
-            # Verify Dependencies
-            if (!(Get-Module -ListAvailable PSIni)) {
-                Write-Host "PSIni not found" -ForegroundColor Red  
-                Write-Host "PSIni is required for 'shell' to work" -ForegroundColor Yellow  
-                Write-Host "it can be installed with the following command:" -ForegroundColor Yellow  
-                Write-Host "Install-Module PSIni -Scope CurrentUser -Force" -ForegroundColor Cyan  
+            # Initialise the environment with an external script
+            Import-Module (Join-Path $global:projectDir ".\data\shelldata\init.psm1")
+            $initInfo = InitialiseModules $shellVersion
+            Remove-Module init
+
+            # Write output based on settings
+            $preferences = Get-Content $prefPath -Raw | ConvertFrom-Json
+            $initPref = $preferences.Settings.initMessages
+            $clearConsole = $preferences.Settings.initClear
+
+            # Override with switches
+            if ($PSBoundParameters.ContainsKey('cls')) { $clearConsole = $cls }
+
+            $switches = @($detailed, $silent, $default) | Where-Object { $_ }
+            if ($switches.count -gt 1) {
+                Write-Host "Please specify one output at a time" -ForegroundColor Red
                 return
             }
 
-            # test this later
-            if ($altAction -eq "cls") { Clear-Host }
+            if ($detailed) { $initPref = "detailed" }
+            elseif ($silent) { $initPref = "silent" }
+            elseif ($default) { $initPref = "default" }
 
-            Import-Module (Join-Path $global:projectDir ".\data\shelldata\init.psm1")
-            InitialiseModules
-            Remove-Module init
+            # Initialisation output
+            if ($clearConsole) { Clear-Host }
+            _writeInitOutput $initInfo $initPref
         }
 
         "cd" { Set-Location $global:projectDir }
-
-        "vars" {
-            Write-Host "`$global:projectDir : $global:projectDir" -ForegroundColor Yellow
-            Write-Host "`$global:prefPath : $global:prefPath" -ForegroundColor Yellow
-        }
 
         "mods" {
             # Display help message on invalid syntax
@@ -128,12 +165,10 @@ param (
 
         "pref" {
             switch ($altAction) {
-                "ii" { Invoke-Item $global:prefPath }
+                "ii" { Invoke-Item $prefPath }
 
                 # Write preferences to console
-                Default {
-                    Get-Content $global:prefPath
-                }
+                Default { Get-Content $prefPath }
             }
         }
 
@@ -147,5 +182,4 @@ param (
 
 # Initialisation
 $global:projectDir = $PSScriptRoot
-$global:prefPath = Join-Path $global:projectDir "data\pref.ini"
 shell init

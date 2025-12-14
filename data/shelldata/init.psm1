@@ -1,35 +1,4 @@
-# TODO:
-#       $set has no validation : can be int or string
-#           $set is set up as a [string], so it will never check as an integer
-#       Import-Ini : This one is actually fine
-#           Get-IniContent and Out-IniFile are from PsIni 3
-#           The current latest version is PsIni 4 - it's just poorly documented
-#           Import-Ini and Export-Ini are the new functions
-#       _LazyUpdate uses $using:modPath in a scriptblock : I'm on ps7+ so this is fine, but i'll definitely note that
-#           maybe if i can't do a fix for 5, i'll do a version check
-#       continue is illegal inside switch : i actually did not know that
-#           use break instead or restructure
-#       the module is loaded and executed : comment says load order
-#           never sorted by integer value OH that's what i forgot
-#       default to 0 and let the user change later : easier to deal with than defaulting every module to lazy
-#       only the lazy function is removed, not the entry in the ini
-#           hwat
-#           oh that's probably on update? that's probably why it won't let me change the load value
-#           ,,, idk i forgor
-#       i called Export-Ini twice
-#       check message colours
-#       Import-Module can throw an error : Set up try{}catch{} blocks
-#       there's no return value : return a hashtable with loaded, added, removed arrays
-#           oh hwait that makes update messages so much easier :sob:
-
-# TODO: (the new one)
-# okay update. i removed the function parameters and changed what this is supposed to do
-# the .DESCRIPTION pretty much sums it up
-# basically, rewrite everything :thumbs_up:
-# :dying:
-# and consider changing from pref.ini to pref.json. more convenient
-
-function InitialiseModules {
+function InitialiseModules($shellVersion) {
     <#
         .SYNOPSIS
             Initialises the Shell Module Manager
@@ -41,157 +10,107 @@ function InitialiseModules {
             PSIni is a required dependency for reading pref.ini
     #>
 
-    # Expect both or neither, not either or
-    if ([bool]$set -xor [bool]$module) {
-        Write-Host "Missing Var" -ForegroundColor Red
-        return
-    }
-
-    $ini = Import-Ini $global:prefPath
-
-    # Check if paths exist
-    $moduleDir = Join-Path $global:projectDir "modules"
-    if (!(Test-Path $moduleDir)) { New-Item $moduleDir -ItemType Directory | Out-Null }
-    if (!(Test-Path $global:prefPath)) {
-        New-Item $global:prefPath -ItemType File | Out-Null
-        "[Settings]`nprojectDirectory=$global:projectDir`n[Modules]`n" | Out-File -FilePath $global:prefPath -Encoding utf8
-    }
-
-    function _LazyUpdate {
-    param (
-            [string]$action,
-            [string]$mod
-        )
-
-        switch ($action) {
-            "add" {
-                $modPath = Join-Path $moduleDir "$mod.psm1"
-                Set-Item Function:$mod -Value {
-                    Remove-Item Function:$mod -ErrorAction SilentlyContinue
-                    Import-Module $using:modPath
-                    & $mod @PSBoundParameters
-                }
-                Write-Host "$mod added from $modPath" #debug
-            }
-
-            "rm" {
-                if (Test-Path Function:$mod) {
-                    Remove-Item Function:$mod -ErrorAction SilentlyContinue
-                }
-            }
+    # Get user preferences
+    $prefPath = Join-Path $global:projectDir "data\shelldata\pref.json"
+    $preferences = @{ # for scope
+        Settings = @{
+            version = $shellVersion
+            projectDir = $global:projectDir
+            initMessages = "default"
+            initClear = $false
         }
+        Modules = @{}
     }
 
-    # Change how a single module is loaded
-    if ($set) {
+    # Get user preferences from pref.json
+    if (Test-Path $prefPath) {
+        $preferences = Get-Content $prefPath -Raw | ConvertFrom-Json -AsHashtable
+
+        # check current version
+        if ($preferences.Settings.version -ne $shellVersion) {
+            $preferences.Settings.version = $shellVersion
+        }
+    } else {
+        # Make sure the shelldata dir exists
+        $prefDir = Split-Path $prefPath -Parent
+        if (-not (Test-Path $prefDir)) {
+            New-Item $prefDir -ItemType Directory | Out-Null
+        }
+
+        # Then create a new preferences file
+        $preferences | ConvertTo-Json -Depth 3 | Set-Content $prefPath
+    }
+
+    # Get modules
+    $moduleDir = Join-Path $global:projectDir "modules"
+    if (-not (Test-Path $moduleDir)) {
+        New-Item $moduleDir -ItemType Directory | Out-Null
+    }
+
+    # Sort all modules based on preferences
+    $previousModules = $preferences.Modules.Keys
+    $currentModules  = Get-ChildItem $moduleDir -File -Filter *.psm1 |
+    ForEach-Object { $_.BaseName }
+
+    $existingModules = $currentModules  | Where-Object { $_ -in $previousModules }
+    $newModules      = $currentModules  | Where-Object { $_ -notin $previousModules }
+    $removedModules  = $previousModules | Where-Object { $_ -notin $currentModules }
+
+    # Add message for return outputs
+    $initMessage = @{
+        Imported = @()
+        Disabled = @()
+        Added = @()
+        Removed = @()
+    }
+
+    # Import recognised modules that are set as enabled
+    foreach ($module in $existingModules) {
+        $importMode = $preferences.Modules[$module]
         $modulePath = Join-Path $moduleDir "$module.psm1"
 
-        switch ($set) {
-            "enable" {
-                Import-Module $modulepath
-                _LazyUpdate rm $module
-                $set = 0
-            }
-
-            "disable" {
-                Remove-Module $module
-                _LazyUpdate rm $module
-                $set = -1
-            }
-
-            "lazy" {
-                Remove-Module $module
-                _LazyUpdate add $module
-                $set = 'lazy'
-
-            }
-
-            { $set -match '^\d+$' } {
-                _LazyUpdate rm $module
-
-                if ($set -lt 0) {
-                    Remove-Module $module
-                } else {
-                    Import-Module $module
-                }
-
-                break # changed from continue
-            }
+        # "continue" is illegal inside powershell switches
+        if ($importMode -eq "disabled") {
+            $initMessage.Disabled += $module
+            continue
         }
 
-        if ($ini['Modules']["$module"] -eq $set) {
-            Write-Host "$module already set to $set" -ForegroundColor Yellow
-            return
+        # Import all modules
+        switch ($importMode) {
+            # Enabled
+            0 { Import-Module $modulePath -Global }
+
+            # Enable and Run
+            { $_ -gt 0 } {
+                Import-Module $modulePath -Global
+                & $module
+            }
+            # Lazy Load : Not implemented
+            # "lazy" {}
         }
 
-        $ini['Modules']["$module"] = $set
-        Export-Ini -InputObject $ini -Path $global:prefPath -Force
-        Write-Host "$module set to $set" -ForegroundColor Green
-
-        return
+        $initMessage.Imported += $module
     }
 
-    # Else, reload all modules by reading pref.ini
-    # First remove all modules
-    $prevModules = @()
-    foreach ($mod in $ini['Modules']) {
-        $prevModules += $mod
-        _LazyUpdate rm $mod
-        if (Get-Module -Name $mod) { Remove-Module $mod }
+    # Import new modules and update preferences to have a default value for each module
+    foreach ($module in $newModules) {
+        $preferences.Modules[$module] = 0
+
+        $modulePath = Join-Path $moduleDir "$module.psm1"
+        Import-Module $modulePath
+
+        $initMessage.Added += $module
     }
 
-    # Then, load in every module in the modules directory
-    $modules = Get-ChildItem $moduleDir -File -Filter *.psm1 | ForEach-Object { $_.BaseName }
-
-    $oldModules = @()
-    $newModules = @()
-    if (-not $ini.Contains('Modules')) {
-        $ini['Modules'] = [System.Collections.Specialized.OrderedDictionary]::new()
+    # Update for all removed modules
+    foreach ($module in $removedModules) {
+        $preferences.Modules.Remove($module)
+        $initMessage.Removed += $module
     }
-    foreach ($mod in $modules) {
-        if ($ini['Modules'].Contains($mod)) {
-            $flag = $ini['Modules'][$mod]
-        } else {
-            $flag = "uhh it ain't in there brah"
-        }
 
-        # Import every already existing module
-        if ($flag -eq "lazy") {
-            _LazyUpdate add $mod
-            $oldModules += $mod
-        }
-        if ($flag -is [int]) {
-            switch ($flag) {
-                0 {
-                    Import-Module (Join-Path $moduleDir "$mod.psm1")
-                    $oldModules += $mod
-                }
+    # Finally, update pref.json
+    $preferences | ConvertTo-Json -Depth 4 | Set-Content -Path $prefPath
 
-                { $_ -gt 0 } {
-                    Import-Module (Join-Path $moduleDir "$mod.psm1")
-                    & $mod
-                    $oldModules += $mod
-                }
-
-                { $_ -lt 0 } { $oldModules += $mod }
-            }
-        }
-        else {
-            $newModules += $mod
-            $ini['Modules'][$mod] = 'lazy'
-            _LazyUpdate add $mod
-        }
-    }
-    # Add new modules to list
-
-
-    $ini | Export-Ini -Path $global:prefPath -Force
-
-    # write a message for every new and every removed module
-    $addedModules = $newModules | Where-Object { $_ -notin $prevModules }
-    $removedModules = $prevModules | Where-Object { $_ -notin $newModules }
-
-    foreach ($mod in $oldModules) { Write-Host "Loaded '$mod'" -ForegroundColor Yellow }
-    foreach ($mod in $addedModules) { Write-Host "Added '$mod'" -ForegroundColor Green }
-    foreach ($mod in $removedModules) { Write-Host "Removed '$mod'" -ForegroundColor Yellow }
+    # Return all actions for verbose output
+    return $initMessage
 }
