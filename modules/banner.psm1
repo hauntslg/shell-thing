@@ -1,34 +1,75 @@
-# Creates basic commands for creating and modifying banners
 function banner {
-    param (
+param (
         [Parameter(Position = 0)]
         [string]$action = "view",
 
         [Parameter(Position = 1)]
         [string]$name,
-        [switch]$safe,
 
-        [Parameter(Position = 2)]
+        [switch]$safe,
         [switch]$open
     )
 
-    if (-not $global:projectDirectory) {
-        Write-Host "Project directory not found" -ForegroundColor Red
-        Write-Host "Your .ini likely does not have the correct directory" -ForegroundColor Yellow
-    }
-    else {
-        # find currently set banner
-        $bannerFile = $global:pref.Settings.currentBanner
-        # find banners location, create it if it doesn't exist
-        $bannerDirectory = Join-Path $global:projectDirectory "data/banners"
-        if (!(Test-Path $bannerDirectory)) {
-            New-Item $bannerDirectory -ItemType Directory
-            Write-Host 'New banner data file created'
+    # add colours maybe?
+    # later
+    function _showBanner($path) {
+        if (Test-Path $path) {
+            Get-Content $path -Encoding UTF8 | ForEach-Object {
+                Write-Host $_ -ForegroundColor Yellow
+            }
+        } else {
+            Write-Host "Banner not found: $path" -ForegroundColor Red
         }
-        # Define banner
-        $banner = Join-Path $bannerDirectory $bannerFile
     }
+
+    # Get the user preferences
+    $prefPath = Join-Path $global:projectDir "data\shelldata\pref.json"
+    $preferences = Get-Content $prefPath | ConvertFrom-Json -AsHashtable
+
+    # Check for a set banner
+    if (-not $preferences.Settings.ContainsKey("currentBanner")) {
+        # Default to no banner on first run
+        $preferences.Settings["currentBanner"] = "none"
+        $preferences | ConvertTo-Json -Depth 3 | Set-Content $prefPath
+    }
+    $currentBanner = $preferences.Settings.currentBanner
+
+    # Make sure the banner directory exists
+    $bannerDir = Join-Path $global:projectDir "data\banners"
+    if (-not (Test-Path $bannerDir)) {
+        New-Item $bannerDir -ItemType Directory | Out-Null
+    }
+
     switch ($action) {
+        Default {
+            # Shorthand for banner view <banner>
+            if ($name) {
+                $bannerPath = Join-Path $bannerDir "$name.txt"
+                _showBanner $bannerPath
+            } elseif ($currentBanner -ne "none") {
+                $bannerPath = Join-Path $bannerDir "$currentBanner.txt"
+                _showBanner $bannerPath
+            }
+        }
+
+        "view" {
+            if (-not $name) {
+                if ($currentBanner -eq "none") {
+                    Write-Host "No banner set" -ForegroundColor Red
+                    return
+                }
+
+                # If a banner is set, get the path of the banner and print it to the console
+                $bannerPath = Join-Path $bannerDir "$currentBanner.txt"
+                _showBanner $bannerPath
+
+            } else {
+                # View a user selected banner
+                $bannerPath = Join-Path $bannerDir "$name.txt"
+                _showBanner $bannerPath
+            }
+        }
+
         "add" {
             if (!(Test-Path $bannerDirectory)) {
                 Write-Host "Banner directory does not exist" -ForegroundColor Red
@@ -125,59 +166,5 @@ function banner {
             }
         }
 
-        "view" {
-            # Default
-            if (-not $name) {
-                if (Test-Path $banner) {
-                    Get-Content -Path $banner -Encoding UTF8 | ForEach-Object { Write-Host $_ -ForegroundColor Yellow }
-                }
-                else {
-                    Write-Host "banner not found" -ForegroundColor Red
-                }
-
-                # View a selected banner
-            }
-            else {
-                $target = Join-Path $bannerDirectory "$name.txt"
-                if (Test-Path $target) {
-                    Get-Content -Path $target -Encoding UTF8 | ForEach-Object { Write-Host $_ -ForegroundColor Yellow }
-                }
-                else {
-                    Write-Host "banner $name not found" -ForegroundColor Red
-                }
-            }
-        }
-
-        "directories" {
-            Write-Host "global:prefPath:            $global:prefPath" -ForegroundColor Yellow
-            Write-Host "banner:                     $banner" -ForegroundColor Yellow
-            Write-Host "bannerDirectory:            $bannerDirectory" -ForegroundColor Yellow
-            Write-Host "bannerFile:                 $bannerFile" -ForegroundColor Yellow
-        }
-
-        Default {
-            # Default
-            if (-not $action) {
-                if (Test-Path $banner) {
-                    Get-Content -Path $banner -Encoding UTF8 | ForEach-Object { Write-Host $_ -ForegroundColor Yellow }
-                }
-                else {
-                    Write-Host "banner not found" -ForegroundColor Red
-                }
-
-                # View a selected banner
-            }
-            else {
-                $target = Join-Path $bannerDirectory "$action.txt"
-                if (Test-Path $target) {
-                    Get-Content -Path $target -Encoding UTF8 | ForEach-Object { Write-Host $_ -ForegroundColor Yellow }
-                }
-                else {
-                    Write-Host "banner $action not found" -ForegroundColor Red
-                }
-            }
-        }
     }
 }
-
-Export-ModuleMember -Function banner

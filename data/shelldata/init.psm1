@@ -64,6 +64,25 @@ function InitialiseModules($shellVersion) {
         Removed = @()
     }
 
+    # Import new modules and update preferences to have a default value for each module
+    foreach ($module in $newModules) {
+        $preferences.Modules[$module] = 0
+
+        $modulePath = Join-Path $moduleDir "$module.psm1"
+        Import-Module $modulePath
+
+        $initMessage.Added += $module
+    }
+
+    # Update for all removed modules
+    foreach ($module in $removedModules) {
+        $preferences.Modules.Remove($module)
+        $initMessage.Removed += $module
+    }
+
+    # Update pref.json
+    $preferences | ConvertTo-Json -Depth 4 | Set-Content -Path $prefPath
+
     # Import recognised modules that are set as enabled
     foreach ($module in $existingModules) {
         $importMode = $preferences.Modules[$module]
@@ -91,25 +110,6 @@ function InitialiseModules($shellVersion) {
 
         $initMessage.Imported += $module
     }
-
-    # Import new modules and update preferences to have a default value for each module
-    foreach ($module in $newModules) {
-        $preferences.Modules[$module] = 0
-
-        $modulePath = Join-Path $moduleDir "$module.psm1"
-        Import-Module $modulePath
-
-        $initMessage.Added += $module
-    }
-
-    # Update for all removed modules
-    foreach ($module in $removedModules) {
-        $preferences.Modules.Remove($module)
-        $initMessage.Removed += $module
-    }
-
-    # Finally, update pref.json
-    $preferences | ConvertTo-Json -Depth 4 | Set-Content -Path $prefPath
 
     # Return all actions for verbose output
     return $initMessage
