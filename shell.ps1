@@ -16,40 +16,74 @@
 #       unit tests : hwait why didn't i think of that
 #       versioning : yes i should probably do that :sob:
 #
-# TODO:
-#       Update other modules to make up for the removal of $global:prefPath (only banner.psm1 i think)
-#       
+# CURRENT:
+#       Initialisation is complete
+#       Now, i'll need to work on setting up preference modifications
+#       That includes : <mods> for setting up initialisation behavior
+#                       <prefs> for changing general settings
+#       I'll also need a decent default message
+#       although "psmm is working yippee" is funny
+#       would this kinda me a powershell module sandbox?
+#       i mean, it's pretty much a mini environment for powershell dev
+#       idk, i'll think about it
 
 function shell {
-    <#
-        .SYNOPSIS
-            Entrypoint for Shell Module Manager
+<#
+.SYNOPSIS
+    PowerShell Module Manager (PSMM) - A dev sandbox for managing your powershell environment and testing modules
+    Never came up with a good name for it, idk
+    let's call it tim
 
-        .DESCRIPTION
-            Initialises `shell` on startup and auto loads modules based on preferences
+.DESCRIPTION
+    This provides a controlled environment for :
+        Automatically initialising modules
+        Modifying environment settings
+        Easy installation and removal of modules
 
-        .PARAMETER
-            init    - initialise all modules and environment
-            cd      - go to shell directory
-            vars    - display global variables
-            modules - list loaded modules
-            set     - manage a module
-            pref    - manage preferences
+.PARAMETER action
+    The primary performing action
+        init        : imports all modules and initialises the environment
+        mods        : Manage modules
+        pref        : view or modify environment preferences
+        cd          : set the current location to the project root
+        version     : Displays the current version
 
-        .PARAMETER altAction
-            init    - cls : clear the console for a freshly loaded environment
-                      (Default) : reload all modules
-            set     - enable / disable / lazy
-                      integers for direct inputs / load order
-            pref    - ii : open pref.ini
-                      (Default) : write preferences to console
+.PARAMETER altAction
+    The secondary action for each primary action
+    for "init":
+        -detailed   : displays all information about all detected modules
+        -silent     : initialises the environment with no messages
+        -default    : only displays new and removed modules
+        -cls        : a boolean that can be set to clear the console on initialisation
 
-        .PARAMETER module
-            A selected module for altAction 'set'
+    for "mods":
+        working on it
 
-        .NOTES
-            PSIni is a required dependency for writing to pref.ini
-    #>
+    for "prefs":
+        working on it
+
+.PARAMETER module
+    working on it
+
+.EXAMPLE
+    Display an info message
+        shell
+
+.EXAMPLE
+    Display the current version
+        shell version
+
+.EXAMPLE
+    Initialise the environment
+        shell init
+        shell init -detailed    : i'll probably change this to -Verbose
+        shell init -cls $false
+
+.NOTES
+    under heavy development
+    Version : 0.2.0
+    Author  : boredcat
+#>
 param (
         [Parameter(Position = 0)]
         [string]$action,
@@ -58,6 +92,7 @@ param (
         [Parameter(Position = 2)]
         [string]$module,
 
+        # Initialisation
         [switch]$detailed,
         [switch]$silent,
         [switch]$default,
@@ -87,7 +122,7 @@ param (
     $prefPath = Join-Path $global:projectDir "data\shelldata\pref.json"
     switch ($action) {
         "version" {
-            Write-Host "creative name for a PowerShell Module Manager" -ForegroundColor Yellow
+            Write-Host "PowerShell Sandbox Thing (real)" -ForegroundColor Yellow
             Write-Host "version $shellVersion" -ForegroundColor Yellow
         }
 
@@ -123,48 +158,24 @@ param (
         "cd" { Set-Location $global:projectDir }
 
         "mods" {
-            # Display help message on invalid syntax
-            if ([string]::IsNullOrWhiteSpace($altAction) -or [string]::IsNullOrWhiteSpace($module)) {
-                Write-Host "Usage:" -ForegroundColor Yellow
-                Write-Host " - shell mods enable <module>" -ForegroundColor Cyan
-                Write-Host " - shell mods disable <module>" -ForegroundColor Cyan
-                Write-Host " - shell mods lazy <module>" -ForegroundColor Cyan
-                Write-Host " - shell mods <integer> <module>" -ForegroundColor Cyan
-                return
-            }
-
-            # Prepare modules and module initialisation script
-            $moduleDir = Join-Path $global:projectDir "modules"
-
-            # Make sure all modules are present
-            if (!(Test-Path $moduleDir)) {
-                Write-Host "Modules directory not found" -ForegroundColor Red
-                return
-            }
-
-            # Make sure init script is present and import it
-            if (-not (Get-Command InitialiseModules -ErrorAction SilentlyContinue)) {
-                Write-Host "Initialisation script not found" -ForegroundColor Red
-                Write-Host "no modules can be imported" -ForegroundColor Yellow
-                return
-            }
-            Import-Module (Join-Path $global:projectDir ".\data\shelldata\init.psm1")
-
-            # Send user action to init.psm1
+            # something like this idk
             switch ($altAction) {
-                "enable" { InitialiseModules $altAction $module }
-                "disable" { InitialiseModules $altAction $module }
-                "lazy" { InitialiseModules $altAction $module }
-                { $altAction -match '^\d+$'} { InitialiseModules $altAction $module } # If the input is an integer
+                {-not $altAction} { Write-Host write an info message }
 
-                Default {
-                    Write-Host "Unrecognised Action: $altAction" -ForegroundColor Red
-                }
+                {$altAction -eq "list"} { Write-Host list all modules }
+
+                {$altAction -eq "set"} { Write-Host change a behavior of a selected mod with an external powershell script }
             }
+
+            # more relevant actions can be added later
         }
 
         "pref" {
             switch ($altAction) {
+                # something to change initialisation behavior
+                # something else to change the other settings, tbh i forgot them
+
+                # Old code:
                 "ii" { Invoke-Item $prefPath }
 
                 # Write preferences to console
