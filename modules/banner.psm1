@@ -4,7 +4,7 @@ param (
         [string]$action = "view",
 
         [Parameter(Position = 1)]
-        [string]$name,
+        [string]$bannerName,
 
         [switch]$safe,
         [switch]$open
@@ -24,7 +24,7 @@ param (
 
     # Get the user preferences
     $prefPath = Join-Path $global:projectDir "data\shelldata\pref.json"
-    $preferences = Get-Content $prefPath | ConvertFrom-Json -AsHashtable
+    $preferences = Get-Content $prefPath -Raw | ConvertFrom-Json -AsHashtable
 
     # Check for a set banner
     if (-not $preferences.Settings.ContainsKey("currentBanner")) {
@@ -43,8 +43,8 @@ param (
     switch ($action) {
         Default {
             # Shorthand for banner view <banner>
-            if ($name) {
-                $bannerPath = Join-Path $bannerDir "$name.txt"
+            if ($bannerName) {
+                $bannerPath = Join-Path $bannerDir "$bannerName.txt"
                 _showBanner $bannerPath
             } elseif ($currentBanner -ne "none") {
                 $bannerPath = Join-Path $bannerDir "$currentBanner.txt"
@@ -53,7 +53,7 @@ param (
         }
 
         "view" {
-            if (-not $name) {
+            if (-not $bannerName) {
                 if ($currentBanner -eq "none") {
                     Write-Host "No banner set" -ForegroundColor Red
                     return
@@ -65,21 +65,21 @@ param (
 
             } else {
                 # View a user selected banner
-                $bannerPath = Join-Path $bannerDir "$name.txt"
+                $bannerPath = Join-Path $bannerDir "$bannerName.txt"
                 _showBanner $bannerPath
             }
         }
 
         "add" {
-            if (!(Test-Path $bannerDirectory)) {
+            if (!(Test-Path $bannerDir)) {
                 Write-Host "Banner directory does not exist" -ForegroundColor Red
-                Write-Host "Expected directory: $bannerDirectory" -ForegroundColor Yellow
+                Write-Host "Expected directory: $bannerDir" -ForegroundColor Yellow
             }
-            elseif (!$name) {
+            elseif (!$bannerName) {
                 Write-Host "Enter a banner name" -ForegroundColor Red
             }
             else {
-                $filePath = Join-Path $bannerDirectory "$name.txt"
+                $filePath = Join-Path $bannerDir "$bannerName.txt"
 
                 if (!(Test-Path $filePath)) {
                     Add-Content -Path $filePath -Value "put your banner here!"
@@ -90,36 +90,36 @@ param (
 
                 }
                 else {
-                    Write-Host "Banner $name already exists" -ForegroundColor Red
+                    Write-Host "Banner $bannerName already exists" -ForegroundColor Red
                 }
             }
         }
 
         # Open a banner in notepad
         "edit" {
-            if ($name) {
-                $target = Join-Path $bannerDirectory "$name.txt"
+            if ($bannerName -ne "none") {
+                Write-Host "There is no current banner" -ForegroundColor Red
+            }
+
+            $target = Join-Path $bannerDir "$bannerName.txt"
+            if ($bannerName) {
 
                 if (Test-Path $target) {
                     Invoke-Item $target
                 }
                 else {
-                    Write-Host "Banner $name does not exist" -ForegroundColor Red
+                    Write-Host "Banner $bannerName does not exist" -ForegroundColor Red
                 }
 
-            }
-            elseif (Test-Path $banner) {
+            } else  {
                 #If there is no user input
-                Invoke-Item $banner
-            }
-            else {
-                Write-Host "There is no current banner" -ForegroundColor Red
+                Invoke-Item (Join-Path $bannerDir "$currentBanner.txt")
             }
         }
 
         # Delete a banner
         "remove" {
-            $target = Join-Path $bannerDirectory "$name.txt"
+            $target = Join-Path $bannerDir "$bannerName.txt"
 
             if (Test-Path $target) {
                 if ($safe) {
@@ -127,11 +127,11 @@ param (
                     # Sends file to trash as opposed to permanently deleting it
                     Add-Type -AssemblyName Microsoft.VisualBasic
                     [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($target, 'OnlyErrorDialogs', 'SendToRecycleBin')
-                    Write-Host "Banner $name sent to trash" -ForegroundColor Yellow
+                    Write-Host "Banner $bannerName sent to trash" -ForegroundColor Yellow
                 }
                 else {
                     Remove-Item $target
-                    Write-Host "Banner $name Deleted" -ForegroundColor Yellow
+                    Write-Host "Banner $bannerName Deleted" -ForegroundColor Yellow
                 }
             }
             else {
@@ -141,7 +141,7 @@ param (
 
         # List all available banners
         "list" {
-            $list = Get-ChildItem $bannerDirectory
+            $list = Get-ChildItem $bannerDir -Filter *.txt
             foreach ($item in $list) {
                 if ($item.Extension -eq ".txt") {
                     Write-Host $item.name -ForegroundColor Cyan
@@ -153,18 +153,24 @@ param (
         }
 
         "set" {
-            $target = Join-Path $bannerDirectory "$name.txt"
+            if ($bannerName -eq "none") {
+                $preferences.Settings["currentBanner"] = $bannerName
+                $preferences | ConvertTo-Json -Depth 3 | Set-Content $prefPath
+                Write-Host "Banner disabled" -ForegroundColor Yellow
+                return
+            }
 
-            # If the given banner exists, set that as the default
-            if (Test-Path $target) {
-                $global:pref.Settings.currentBanner = "$name.txt"
-                Export-Ini -InputObject $global:pref -Path $global:prefPath
-                Write-Host "Banner set to $name" -ForegroundColor Yellow
+            $newDefault = Join-Path $bannerDir "$bannerName.txt"
+
+            if (-not (Test-Path $newDefault)) {
+                Write-Host "Banner $bannerName does not exist" -ForegroundColor Red
+                return
             }
-            else {
-                Write-Host "Banner $name does not exist" -ForegroundColor Red
-            }
+
+            $preferences.Settings["currentBanner"] = $bannerName
+            $preferences | ConvertTo-Json -Depth 3 | Set-Content $prefPath
+
+            Write-Host "Banner set to $bannerName" -ForegroundColor Green
         }
-
     }
 }
