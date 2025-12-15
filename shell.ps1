@@ -28,7 +28,7 @@
 #       idk, i'll think about it
 
 function shell {
-<#
+    <#
 .SYNOPSIS
     PowerShell Module Manager (PSMM) - A dev sandbox for managing your powershell environment and testing modules
     Never came up with a good name for it, idk
@@ -90,7 +90,9 @@ param (
         [Parameter(Position = 1)]
         [string]$altAction,
         [Parameter(Position = 2)]
-        [string]$module,
+        [string]$preference,
+        [Parameter(Position = 3)]
+        [string]$value,
 
         # Initialisation
         [switch]$detailed,
@@ -127,15 +129,18 @@ param (
         }
 
         "init" {
-            # Initialise the environment with an external script
-            Import-Module (Join-Path $global:projectDir ".\data\shelldata\init.psm1")
-            $initInfo = InitialiseModules $shellVersion
-            Remove-Module init
-
-            # Write output based on settings
+            # Read current preferences
             $preferences = Get-Content $prefPath -Raw | ConvertFrom-Json
             $initPref = $preferences.Settings.initMessages
             $clearConsole = $preferences.Settings.initClear
+
+            # Clear console first for a new environment
+            if ($clearConsole) { Clear-Host }
+
+            # Initialise the environment with an external script
+            Import-Module (Join-Path $global:projectDir "data\shelldata\init.psm1")
+            $initInfo = InitialiseModules $shellVersion
+            Remove-Module init
 
             # Override with switches
             if ($PSBoundParameters.ContainsKey('cls')) { $clearConsole = $cls }
@@ -151,35 +156,51 @@ param (
             elseif ($default) { $initPref = "default" }
 
             # Initialisation output
-            if ($clearConsole) { Clear-Host }
             _writeInitOutput $initInfo $initPref
         }
 
         "cd" { Set-Location $global:projectDir }
 
-        "mods" {
-            # something like this idk
-            switch ($altAction) {
-                {-not $altAction} { Write-Host write an info message }
-
-                {$altAction -eq "list"} { Write-Host list all modules }
-
-                {$altAction -eq "set"} { Write-Host change a behavior of a selected mod with an external powershell script }
-            }
-
-            # more relevant actions can be added later
-        }
+        # "mods" {
+        #     # something like this idk
+        #     switch ($altAction) {
+        #         {-not $altAction} { Write-Host write an info message }
+        #
+        #         {$altAction -eq "list"} { Write-Host list all modules }
+        #
+        #         {$altAction -eq "set"} { Write-Host change a behavior of a selected mod with an external powershell script }
+        #     }
+        #
+        #     # more relevant actions can be added later
+        # }
 
         "pref" {
-            switch ($altAction) {
-                # something to change initialisation behavior
-                # something else to change the other settings, tbh i forgot them
 
-                # Old code:
+
+            switch ($altAction) {
+                "set" {
+                    if (-not $preference) { Write-Host "Modifying preference not specified" -ForegroundColor Red; return }
+                    if (-not $preference) { Write-Host "Modifying value not specified" -ForegroundColor Red; return }
+
+                    Import-Module (Join-Path $global:projectDir "data\shelldata\modifyPrefs.psm1")
+                    $preferenceModified = ModifyPreference $preference $value
+                    Remove-Module modifyPrefs
+
+                    if ($preferenceModified -eq $true) {
+                        Write-Host "$preference set to $value" -ForegroundColor Green
+                    }
+                }
+
                 "ii" { Invoke-Item $prefPath }
 
-                # Write preferences to console
-                Default { Get-Content $prefPath }
+                "list" { Get-Content $prefPath }
+
+                Default {
+                    Write-Host "pref commands:" -ForegroundColor Yellow
+                    Write-Host "    pref set <name> <value>"
+                    Write-Host "    pref ii"
+                    Write-Host "    pref list"
+                }
             }
         }
 

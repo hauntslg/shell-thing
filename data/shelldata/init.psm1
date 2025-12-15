@@ -5,9 +5,6 @@ function InitialiseModules($shellVersion) {
 
         .DESCRIPTION
             Reads pref.ini and loads all modules in the modules/ directory according to user preferences
-
-        .NOTES
-            PSIni is a required dependency for reading pref.ini
     #>
 
     # Get user preferences
