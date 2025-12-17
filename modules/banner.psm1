@@ -97,7 +97,7 @@ param (
 
         # Open a banner in notepad
         "edit" {
-            if ($bannerName -ne "none") {
+            if ($currentBanner -eq "none") {
                 Write-Host "There is no current banner" -ForegroundColor Red
             }
 

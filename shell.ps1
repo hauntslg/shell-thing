@@ -1,32 +1,3 @@
-# TODO:
-#       Parameter Validation (ValidateSet)
-#       update on "forgot to write this"
-#       mods default case
-#       mods calls : add a guard if alt action isn't given
-#       set case : set up switch case
-#       init is imported twice : once in init, once in mods
-#       Remove-Module init only done in init block : Never removed in shell mods
-#           ^^ perform a switch before the main switch block to see if init is required
-#           save a boolean to check if init should be removed
-#       update default case from debug : however, "psmm is working yippee" is funny though
-#           just make it a help message :sob:
-#       move global variable initialisation to top
-#
-#       .EXAMPLE messages
-#       unit tests : hwait why didn't i think of that
-#       versioning : yes i should probably do that :sob:
-#
-# CURRENT:
-#       Initialisation is complete
-#       Now, i'll need to work on setting up preference modifications
-#       That includes : <mods> for setting up initialisation behavior
-#                       <prefs> for changing general settings
-#       I'll also need a decent default message
-#       although "psmm is working yippee" is funny
-#       would this kinda me a powershell module sandbox?
-#       i mean, it's pretty much a mini environment for powershell dev
-#       idk, i'll think about it
-
 function shell {
     <#
 .SYNOPSIS
@@ -139,7 +110,8 @@ param (
 
             # Initialise the environment with an external script
             Import-Module (Join-Path $global:projectDir "data\shelldata\init.psm1")
-            $initInfo = InitialiseModules $shellVersion
+            $initInfo = InitialiseModules $shellVersion # This checks all modules, and then imports / runs all
+                                                        # modules based on user preference (pref.json)
             Remove-Module init
 
             # Override with switches
