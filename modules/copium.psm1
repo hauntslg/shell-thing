@@ -3,6 +3,10 @@ function what {
 }
 
 function shit {
+    if (Get-Command vi) {
+        $pointAndLaugh = Join-Path $global:projectDir ".\data\img\"
+        vi $pointAndLaugh
+    }
     Write-Host "sobbing and crying" -ForegroundColor Cyan
 }
 
@@ -13,18 +17,4 @@ function pogger {
 # i should totally remake The Fuck for powershell...
 function fuck {
     Write-Host "sobbing and crying" -ForegroundColor Cyan
-}
-
-function say {
-    $text = $MyInvocation.Line.Substring($MyInvocation.InvocationName.Length).Trim()
-    if ($text -ilike "*sigma*") { 
-        Write-Host "YOU CAN'T MAKE ME" -ForegroundColor Yellow 
-        return
-    }
-
-    Write-Host $text -ForegroundColor Yellow
-}
-
-function clever {
-    Write-Host ">w>" -ForegroundColor Yellow
 }
