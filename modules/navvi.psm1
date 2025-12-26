@@ -158,7 +158,10 @@ param (
         }
 
         "rm" {
-            if ($aliases.Remove($alias)) {
+            if ($aliases.ContainsKey($alias)) {
+                # Remove the alias
+                $aliases.Remove($alias)
+
                 # Update .json
                 $entries = foreach ($key in $aliases.Keys) {
                     [PSCustomObject]@{
