@@ -9,7 +9,7 @@ function InitialiseModules($shellVersion) {
 
     # Get user preferences
     $prefPath = Join-Path $global:projectDir "data\shelldata\pref.json"
-    $preferences = @{ # for scope
+    $preferences = @{
         Settings = @{
             version = $shellVersion
             projectDir = $global:projectDir
@@ -20,12 +20,26 @@ function InitialiseModules($shellVersion) {
     }
 
     # Get user preferences from pref.json
+    $loaded = $false
     if (Test-Path $prefPath) {
-        $preferences = Get-Content $prefPath -Raw | ConvertFrom-Json -AsHashtable
+        try {
+            $rawPrefs = Get-Content $prefPath -Raw | ConvertFrom-Json -AsHashtable
 
-        # check current version
-        if ($preferences.Settings.version -ne $shellVersion) {
-            $preferences.Settings.version = $shellVersion
+            if ($rawPrefs) {
+                $preferences = $rawPrefs
+                $loaded = $true
+
+            } else {
+                throw "Empty / Invalid .json"
+            }
+
+            # check current version
+            if ($preferences.Settings.version -ne $shellVersion) {
+                $preferences.Settings.version = $shellVersion
+            }
+
+        } catch {
+            Write-Host "Preferences Corrupted. Returning to defaults" -ForegroundColor Red
         }
     } else {
         # Make sure the shelldata dir exists
@@ -35,7 +49,8 @@ function InitialiseModules($shellVersion) {
         }
 
         # Then create a new preferences file
-        $preferences | ConvertTo-Json -Depth 3 | Set-Content $prefPath
+        $preferences | ConvertTo-Json -Depth 4 | Set-Content $prefPath
+        $loaded = $true
     }
 
     # Get modules
@@ -78,7 +93,9 @@ function InitialiseModules($shellVersion) {
     }
 
     # Update pref.json
-    $preferences | ConvertTo-Json -Depth 4 | Set-Content -Path $prefPath
+    if ($loaded) {
+        $preferences | ConvertTo-Json -Depth 4 | Set-Content -Path $prefPath
+    }
 
     # Import recognised modules that are set as enabled
     foreach ($module in $existingModules) {
