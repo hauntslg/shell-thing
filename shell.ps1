@@ -110,7 +110,7 @@ param (
             if ($PSBoundParameters.ContainsKey('cls')) { $clearConsole = $cls }
 
             # Clear console first for a new environment
-            if ($cls) { Clear-Host }
+            if ($clearConsole) { Clear-Host }
 
             # Initialise the environment with an external script
             Import-Module (Join-Path $global:projectDir "data\shelldata\init.psm1")
