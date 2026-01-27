@@ -23,7 +23,7 @@ function ytdownload {
         [Parameter(Position = 1)]
         [string]$command,
         [Parameter(Position = 2)]
-        [string]$fileName
+        [string]$filename
     )
     
     if (!$link) {
@@ -33,7 +33,7 @@ function ytdownload {
     }
 
     # Get yt-dlp.exe
-    $ytdlp = Join-Path $global:projectDirectory "data\ytdownload\yt-dlp.exe"
+    $ytdlp = Join-Path $global:projectDir "data\ytdownload\yt-dlp.exe"
 
     # non download commands
     switch ($link) {
@@ -49,31 +49,31 @@ function ytdownload {
         "--list*" { & $ytdlp $link --list-formats; return }
     }
 
-    $arguments = "-f "
+    $arguments = @("-f")
 
     switch -Regex ($command) {
         "^mp3$" {
-            $arguments += "bestaudio --extract-audio --audio-format mp3"
+            $arguments += @("bestaudio", "--extract-audio", "--audio-format", "mp3")
         }
 
         "^aac$" {
-            $arguments += "bestaudio --extract-audio --audio-format aac"
+            $arguments += @("bestaudio", "--extract-audio", "--audio-format", "aac")
         }
         
         "^mp4$" {
-            $arguments += "bestvideo+bestaudio --remux-video mp4"
+            $arguments += @("bestvideo+bestaudio", "--remux-video", "mp4")
         }
         
         "^mkv$" {
-            $arguments += "bestvideo+bestaudio --remux-video mkv"
+            $arguments += @("bestvideo+bestaudio", "--remux-video", "mkv")
         }
         
         Default { & $ytdlp $link --list-formats; return } 
     }
 
     if ($fileName) {
-        $arguments += " -o $filename"
+        $arguments += @("-o", "$filename")
     }
 
-    Write-Host "$ytdlp $link $arguments"
+    & $ytdlp $link @arguments
 }

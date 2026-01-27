@@ -69,10 +69,10 @@ function sybau {
         Write-Host "Unsupported file type" -ForegroundColor Red
     }
 
-    $bookmarkFile = Join-Path $global:projectDirectory "data/sybau/sybau.json"
+    $bookmarkFile = Join-Path $global:projectDir "data/sybau/sybau.json"
 
     if (!(Test-Path $bookmarkFile)) {
-        $bookmarkPath = Join-Path $global:projectDirectory "data/sybau"
+        $bookmarkPath = Join-Path $global:projectDir "data/sybau"
         New-Item $bookmarkPath -ItemType Directory
         New-Item $bookmarkFile -ItemType File
     }
@@ -87,7 +87,6 @@ function sybau {
 
     if ($bookmarks.PSObject.Properties.Name -contains $action) {
         $expandedPath = _ExpandEnvVars($bookmarks.$action)
-        Write-Host "Expanded Path: $expandedPath" -ForegroundColor Cyan
         _CleanFile($expandedPath)
         return
     }

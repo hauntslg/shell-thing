@@ -1,3 +1,4 @@
+function init { shell init @args }
 function shell {
     <#
 .SYNOPSIS
@@ -105,17 +106,17 @@ param (
             $initPref = $preferences.Settings.initMessages
             $clearConsole = $preferences.Settings.initClear
 
+            # Override with switches
+            if ($PSBoundParameters.ContainsKey('cls')) { $clearConsole = $cls }
+
             # Clear console first for a new environment
-            if ($clearConsole) { Clear-Host }
+            if ($cls) { Clear-Host }
 
             # Initialise the environment with an external script
             Import-Module (Join-Path $global:projectDir "data\shelldata\init.psm1")
             $initInfo = InitialiseModules $shellVersion # This checks all modules, and then imports / runs all
                                                         # modules based on user preference (pref.json)
             Remove-Module init
-
-            # Override with switches
-            if ($PSBoundParameters.ContainsKey('cls')) { $clearConsole = $cls }
 
             $switches = @($detailed, $silent, $default) | Where-Object { $_ }
             if ($switches.count -gt 1) {

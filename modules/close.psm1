@@ -7,7 +7,7 @@ function close {
     .EXAMPLE
     close
     #>
-    $dataDir = Join-Path $global:projectDirectory "data/close"
+    $dataDir = Join-Path $global:projectDir "data/close"
     $player = Join-Path $dataDir "player.js"
     Start-Process node $player -NoNewWindow -Wait
     exit
