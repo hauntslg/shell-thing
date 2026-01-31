@@ -14,7 +14,7 @@
     sybau "./example directory"
 #>
 function sybau {
-    param (
+param (
         [Parameter(Position = 0)]
         [string]$action,
         [Parameter(Position = 1)]
@@ -31,8 +31,8 @@ function sybau {
     }
 
     function _CleanFile {
-        param ( [string]$file )
-        
+    param ( [string]$file )
+
         $resolvedPath = Resolve-Path $file 
         if (!(Test-Path $resolvedPath)) {
             Write-Host "File not found" -ForegroundColor Red
@@ -44,12 +44,17 @@ function sybau {
         # Clear powershell history
         if ((Test-Path $resolvedPath -PathType Leaf) -and ($resolvedPath -like "*.txt")) {
             $lines = Get-Content $resolvedPath
-            
+
             $cleanedLines = $lines |
             Select-Object -Unique | # Clear duplicates
-            Where-Object { $_.Trim() -ne "" } | # Clear all empty lines
-            Where-Object { $_ -notmatch '^\s*rm\b' } # Clear all lines starting with "rm"
-            
+            Where-Object {
+                $_.Trim() -ne ""  -and # Clear all empty lines
+                $_ -notmatch '^\s*rm\b' -and # Clear all lines starting with "rm"
+                $_ -notmatch '^\s*#' -and # Clear all comments
+                $_ -notmatch '^\s*:' -and # Clear all lines beginning with a colon
+                $_ -notmatch '^\s+' # Clear all lines beginning with a space
+            }
+
             $cleanedLines | Set-Content $resolvedPath
 
             Write-Host "Cleaned history" -ForegroundColor Green
@@ -57,7 +62,7 @@ function sybau {
             Write-Host $resolvedPath -ForegroundColor Yellow
             return
         }
-        
+
         # Clear nvim shada
         if (Test-Path $resolvedPath -PathType Container) {
             Get-ChildItem $resolvedPath -Recurse -Include "*.tmp*" | Remove-Item -Force
