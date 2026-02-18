@@ -1,4 +1,4 @@
-Set-Alias -Name measure -Value MeasureSize
+Set-Alias -Name sz -Value MeasureSize
 function MeasureSize {
     param(
             [Parameter(Mandatory=$false, Position=0)]
