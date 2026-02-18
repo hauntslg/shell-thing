@@ -50,6 +50,7 @@ param (
             Where-Object {
                 $_.Trim() -ne ""  -and # Clear all empty lines
                 $_ -notmatch '^\s*rm\b' -and # Clear all lines starting with "rm"
+                $_ -notmatch '^\s*ssh\b' -and # Clear all lines starting with "ssh"
                 $_ -notmatch '^\s*#' -and # Clear all comments
                 $_ -notmatch '^\s*:' -and # Clear all lines beginning with a colon
                 $_ -notmatch '^\s+' # Clear all lines beginning with a space
