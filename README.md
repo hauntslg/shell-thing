@@ -13,6 +13,7 @@ All data is stored in `data/<module name>`
 All preferences and helpers are stored in `data/shelldata`
 
 ## Installation
+note that this may not work reliably without powershell 7+
 First, download this repo (you need shell.ps1 and everything inside `data/shellmodules`)
 Then, add it to your `$PROFILE` to make it run on startup
 Open your terminal a couple times (it can freak out on its first boot)
@@ -33,6 +34,7 @@ Modules that do work reliably are here...
  - **navvi.psm1**
  - **viewitem.psm1** (wezterm exclusive rn)
  - **ytdownload.psm1**
+ - **measuresize.psm1**
 
 ##### Customisation:
  - **banner.psm1**
@@ -41,6 +43,7 @@ Modules that do work reliably are here...
 ##### For fun:
  - **copium.psm1**
  - **freakify.psm1**
+ - **close.psm1**
 
 ##### Experimental:
  - **quicktrust.psm1**
@@ -48,5 +51,6 @@ Modules that do work reliably are here...
  - **sybau.psm1**
 
 ## Later...
-Modules will be downloadable online with a helper tool.
-idk what else honestly
+More modules later maybe, idk
+
+# 600 pages of grown men meowing at each other

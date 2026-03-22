@@ -14,7 +14,7 @@ Set-Alias -Name ytd -Value ytdownload
     The command / download type
 
     .EXAMPLE
-    ytd https://www.youtube.com/watch?v=SgMfVnEm4a4 mp3
+    ytd https://www.youtube.com/watch?v=SgMfVnEm4a4 mp3 'the penis eek'
 #>
 function ytdownload {
     param (
