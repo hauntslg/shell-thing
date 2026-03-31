@@ -1,10 +1,11 @@
 function freakify {
     param(
-        [Parameter(Position = 0)]
+        [Parameter(Position = 0, ValueFromPipeline = $true)]
         [string]$inputString
     )
 
     $stringBuilder = [System.Text.StringBuilder]::new()
+
     # Read each character in the string one by one
     foreach($char in $inputString.ToCharArray()) {
         # from the character, find matching capital letters and record their modified unicode value
@@ -21,9 +22,13 @@ function freakify {
             $stringBuilder.Append($char) | Out-Null
             continue
         }
+
         # Convert the unicode values into characters and append them to the string builder
         $unicodeChar = [char]::ConvertFromUtf32($unicodePoint)
         $stringBuilder.Append($unicodeChar) | Out-Null
     }
-    return $stringBuilder.ToString()
+
+    $output = $stringBuilder.ToString()
+    Set-Clipboard -Value $output
+    return $output
 }
