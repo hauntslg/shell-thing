@@ -59,8 +59,6 @@ param (
             $cleanedLines | Set-Content $resolvedPath
 
             Write-Host "Cleaned history" -ForegroundColor Green
-
-            Write-Host $resolvedPath -ForegroundColor Yellow
             return
         }
 
