@@ -199,17 +199,27 @@ param (
                 return
             }
 
-            # Quick nav
-            if ($aliases.ContainsKey($action)) {
-                # Go to saved location  
-                Set-Location -Path $aliases[$action]
+            $parts = $action -split '[\\/]', 2
 
-                # cd from saved location to relative location
-                if ($alias) {
+            $baseAlias = $parts[0]
+            $relativePath = if ($parts.Count -gt 1) { $parts[1] } else { $null }
+
+            # Quick nav
+            if ($aliases.ContainsKey($baseAlias)) {
+                # Go to saved location  
+                Set-Location -Path $aliases[$baseAlias]
+
+
+                if ($relativePath) {
+                    Set-Location $relativePath
+                }
+
+                # old syntax
+                elseif ($alias) {
                     Set-Location $alias
                 }
             } else {
-                Write-Host "Alias '$action' not found." -ForegroundColor Red 
+                Write-Host "Alias '$baseAlias' not found." -ForegroundColor Red 
             }
         }
     }

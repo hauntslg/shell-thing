@@ -1,5 +1,3 @@
-// learn js so i can understand wtf this means and edit it
-
 const fs = require("fs");
 
 const path = require("path");
