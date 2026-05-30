@@ -98,9 +98,18 @@ function InitialiseModules($shellVersion) {
     }
 
     # Import recognised modules that are set as enabled
-    foreach ($module in $existingModules) {
+    foreach ($module in $existingModules + $newModules) {
         $importMode = $preferences.Modules[$module]
         $modulePath = Join-Path $moduleDir "$module.psm1"
+
+        # remove all modules for reimporting
+        $tempModule = Import-Module $modulePath -PassThru -Force
+        if ($tempModule.ExportedFunctions) {
+            foreach ($func in $tempModule.ExportedFunctions.Keys) {
+                Remove-Item "Function:\$func" -ErrorAction SilentlyContinue
+            }
+        }
+        Remove-Module $tempModule.Name -Force
 
         # "continue" is illegal inside powershell switches
         if ($importMode -eq "disabled") {
@@ -111,11 +120,11 @@ function InitialiseModules($shellVersion) {
         # Import all modules
         switch ($importMode) {
             # Enabled
-            0 { Import-Module $modulePath -Global }
+            0 { Import-Module $modulePath -Global -Force }
 
             # Enable and Run
             { $_ -gt 0 } {
-                Import-Module $modulePath -Global
+                Import-Module $modulePath -Global -Force
                 & $module
             }
             # Lazy Load : Not implemented

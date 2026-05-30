@@ -12,7 +12,7 @@ function shit {
 }
 
 function pogger {
-    Write-Host "YIPPEEEEEEE" -ForegroundColor Cyan
+    Write-Host "HOORAAAAYYYYYYYYYY" -ForegroundColor Cyan
 }
 
 # i should totally remake The Fuck for powershell...
