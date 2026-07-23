@@ -1,5 +1,5 @@
 # shell thing
-a 'lil powershell module manager sandbox thingy i made
+so it's on linux now
 
 This provides:
  - Tools for creating custom modules
@@ -8,44 +8,46 @@ This provides:
  - Additional powershell helpers i wrote myself :rizz-emoji:
  - Other modules for fun
 
-All modules live in `modules/*.psm1`
+All modules live in `modules/*.zsh`
+
 All data is stored in `data/<module name>`
+
 All preferences and helpers are stored in `data/shelldata`
 
 ## Installation
-note that this may not work reliably without powershell 7+
-First, download this repo (you need shell.ps1 and everything inside `data/shellmodules`)
-Then, add it to your `$PROFILE` to make it run on startup
+Zsh is a dependency for this to function
+
+First, download this repo
+
+Then, source `shell.sh` in your `~/.zshrc` to make it run on startup
+
 Open your terminal a couple times (it can freak out on its first boot)
+
 And you're done 🎉
 
 ## Development
 To create a new module, just drop it into `modules/`. it will load automatically when the terminal resets
-Want to use `data/`? the path to `shell.ps1` is saved in one global variable: `$global:projectDir`. everything is relative to that path
+
+Want to use `data/`? the path to `shell.sh` is saved in one global variable: `SHELL_ROOT`. everything is relative to that path
+
 Or, just use whatever structure you want. i'm not your boss lmao
 
 ## Notes
-Not all of the modules provided here are reliable.
-`osu.psm1` for example has a bug that causes a PsIni error for every single osu beatmap diff you have
-(assuming you're an osu player)
+i literally just started this, chill dawg
 
 Modules that do work reliably are here...
-##### Genuinely helpful ones:
- - **navvi.psm1**
- - **viewitem.psm1** (wezterm exclusive rn)
- - **ytdownload.psm1**
- - **measuresize.psm1**
+##### working:
+ - **greet.zsh**
 
-##### Customisation:
- - **banner.psm1**
- - **greet.psm1**
-
-##### For fun:
+##### not working:
  - **copium.psm1**
  - **freakify.psm1**
  - **close.psm1**
-
-##### Experimental:
+ - **banner.psm1**
+ - **navvi.psm1**
+ - **viewitem.psm1**
+ - **ytdownload.psm1**
+ - **measuresize.psm1**
  - **quicktrust.psm1**
  - **steam.psm1**
  - **sybau.psm1**
@@ -54,3 +56,4 @@ Modules that do work reliably are here...
 More modules later maybe, idk
 
 # 600 pages of grown men meowing at each other
+WHY IS THIS LINE HERE
