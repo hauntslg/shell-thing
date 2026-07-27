@@ -102,7 +102,7 @@ param (
 
         "init" {
             # Read current preferences
-            $preferences = Get-Content $prefPath -Raw | ConvertFrom-Json
+            $preferences = Get-Content $prefPath -Raw | ConvertFrom-Json -AsHashtable
             $initPref = $preferences.Settings.initMessages
             $clearConsole = $preferences.Settings.initClear
 
