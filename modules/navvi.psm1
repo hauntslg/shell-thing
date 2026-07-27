@@ -70,6 +70,7 @@ param (
 
     $dataFilePath = Join-Path $global:projectDir "data/navvi"
     $jsonFile = Join-Path $dataFilePath "navvi.json"
+    $exePath = Join-Path $dataFilePath "navvi.exe"
 
     # Make sure the data file exists and is valid
     if (!(Test-Path $jsonFile)) {
@@ -106,14 +107,33 @@ param (
     $entries = @(_GetNavviAliases $jsonFile)
     $aliases = _AliasesToHashtable $entries
 
+    function _GetPath($falias) {
+        $parts = $falias -split '[\\/]', 2
+    
+        $baseAlias = $parts[0]
+        $relativePath = if ($parts.Count -gt 1) { $parts[1] } else { $null }
+    
+        if (-not $aliases.ContainsKey($baseAlias)) {
+            Write-Host "Alias '$baseAlias' not found." -ForegroundColor Red
+            return $null
+        }
+    
+        $base = $aliases[$baseAlias]
+    
+        if ($relativePath) {
+            return Join-Path $base $relativePath
+        }
+    
+        return $base
+    }
+
     switch ($action) {
 
         # In case an alias name matches one of the commands
         "cd" {
-            if ($aliases.ContainsKey($alias)) {
-                Set-Location -Path $aliases[$alias]
-            } else {
-                Write-Host "Alias '$alias' not found." -ForegroundColor Red
+            $relative = _GetPath $alias
+            if ($relative) {
+                Set-Location $relative
             }
         }
 
@@ -122,6 +142,14 @@ param (
                 Write-Host "No aliases found." -ForegroundColor Red
             } else {
                 $entries | Format-Table Name, Path -AutoSize
+            }
+        }
+
+        "path" {
+            # Get a path from the exe and write it to the console
+            $relative = _GetPath $alias
+            if ($relative) {
+                Write-Output "$relative"
             }
         }
 
@@ -180,8 +208,6 @@ param (
         Default {
             # Open menu on default (.exe in data folder)
             if (-not $action) {
-                $exePath = Join-Path $dataFilePath "navvi.exe"
-
                 # Get a path from the exe
                 if (Test-Path $exePath) {
                 $returnedPath = & $exePath |
@@ -199,27 +225,9 @@ param (
                 return
             }
 
-            $parts = $action -split '[\\/]', 2
-
-            $baseAlias = $parts[0]
-            $relativePath = if ($parts.Count -gt 1) { $parts[1] } else { $null }
-
-            # Quick nav
-            if ($aliases.ContainsKey($baseAlias)) {
-                # Go to saved location  
-                Set-Location -Path $aliases[$baseAlias]
-
-
-                if ($relativePath) {
-                    Set-Location $relativePath
-                }
-
-                # old syntax
-                elseif ($alias) {
-                    Set-Location $alias
-                }
-            } else {
-                Write-Host "Alias '$baseAlias' not found." -ForegroundColor Red 
+            $relative = _GetPath $action
+            if ($relative) {
+                Set-Location $relative
             }
         }
     }
