@@ -5,12 +5,15 @@ export SHELL_ROOT="${0:A:h}"
 
 init() {
     local cls=true
+    local silent=true
 
     # parsing flags
     for arg in "$@"; do
         case "$arg" in
             --cls) cls=true ;;
             --no-cls) cls=false ;;
+            --silent) silent=true ;;
+            --not-silent) silent=false ;;
         esac
     done
 
@@ -24,8 +27,10 @@ init() {
         source "$module"
     done
 
-    greet
+    if [[ "$silent" == false ]]; then
+        greet
+    fi
 }
 
-init --no-cls
+init --no-cls --not-silent
 
