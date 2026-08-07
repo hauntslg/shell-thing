@@ -11,6 +11,16 @@ function shit {
     }
 }
 
+
+function ok {
+    if (Get-Command vi) {
+        $pointAndLaugh = Join-Path $global:projectDir ".\data\img\rem.png"
+        vi $pointAndLaugh
+    } else {
+        Write-Host "cool" -ForegroundColor Cyan
+    }
+}
+
 function pogger {
     Write-Host "HOORAAAAYYYYYYYYYY" -ForegroundColor Cyan
 }
