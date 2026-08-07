@@ -24,8 +24,3 @@ function ok {
 function pogger {
     Write-Host "HOORAAAAYYYYYYYYYY" -ForegroundColor Cyan
 }
-
-# i should totally remake The Fuck for powershell...
-function fuck {
-    Write-Host "sobbing and crying" -ForegroundColor Cyan
-}
