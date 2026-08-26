@@ -35,9 +35,11 @@ param (
 
         $resolvedPath = Resolve-Path $file 
         if (!(Test-Path $resolvedPath)) {
-            Write-Host "File not found" -ForegroundColor Red
-            Write-Host $file -ForegroundColor Yellow
-            Write-Host $resolvedPath -ForegroundColor Yellow
+            if ($altAction -ne "silent") {
+                Write-Host "File not found" -ForegroundColor Red
+                Write-Host $file -ForegroundColor Yellow
+                Write-Host $resolvedPath -ForegroundColor Yellow
+            }
             return
         }
 
@@ -95,12 +97,19 @@ param (
         return
     }
     else {
-        Write-Host "$action not in list" -ForegroundColor Red
+        if ($altAction -ne "silent") {
+            Write-Host "$action not in list" -ForegroundColor Red
+        }
     }
 
     # add, rm, and cd removed for simplicity
     # may consider them later
 }
 
+# C:\Users\<user>\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt
 
-# C:\Users\GGPC\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt
+function shut {
+    foreach ($arg in $args) {
+        sybau $arg silent
+    }
+}
