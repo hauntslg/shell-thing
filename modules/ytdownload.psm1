@@ -59,6 +59,10 @@ function ytdownload {
         "^aac$" {
             $arguments += @("bestaudio", "--extract-audio", "--audio-format", "aac")
         }
+
+        "^wav$" {
+            $arguments += @("bestaudio", "--extract-audio", "--audio-format", "wav")
+        }
         
         "^mp4$" {
             $arguments += @("bestvideo+bestaudio", "--remux-video", "mp4")

@@ -1,5 +1,6 @@
 # added this instead of set alias
 function nav { navvi @args }
+function path { navvi path @args }
 function navvi {
 <#
     .SYNOPSIS
