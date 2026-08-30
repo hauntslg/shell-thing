@@ -24,3 +24,14 @@ function ok {
 function pogger {
     Write-Host "HOORAAAAYYYYYYYYYY" -ForegroundColor Cyan
 }
+
+function vegeta {
+    if (Get-Command vi) {
+        $vegeta = Join-Path $global:projectDir ".\data\img\vegeta.gif"
+        vi $vegeta
+    } else {
+        Write-Host "first of all, i am vegina" -ForegroundColor Cyan
+    }
+}
+
+
