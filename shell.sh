@@ -1,11 +1,11 @@
-#!/usr/bin/env zsh
+#!/usr/bin/env bash
 
 # dynamic root as global dir
-export SHELL_ROOT="${0:A:h}"
+SHELL_ROOT="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
 
 init() {
     local cls=true
-    local silent=true
+    local silent=false
 
     # parsing flags
     for arg in "$@"; do
@@ -13,24 +13,23 @@ init() {
             --cls) cls=true ;;
             --no-cls) cls=false ;;
             --silent) silent=true ;;
-            --not-silent) silent=false ;;
         esac
     done
 
-    if [[ "$cls" == true ]]; then
-        clear
-    fi
+    [[ "$cls" == true ]] && clear
 
     # load modules
-    setopt local_options null_glob
-    for module in "$SHELL_ROOT/modules"/*.zsh; do
+    shopt -s nullglob
+    for module in "$SHELL_ROOT/modules"/*.sh; do
         source "$module"
     done
+    shopt -u nullglob
 
+    # autorun
     if [[ "$silent" == false ]]; then
-        greet
+	greet
     fi
 }
 
-init --no-cls --not-silent
+init --no-cls
 
