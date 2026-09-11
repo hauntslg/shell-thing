@@ -1,6 +1,7 @@
 data/pref.ini
 data/shelldata/pref.json
 data/navvi/navvi.json
+data/navvi/aliases
 data/banners/*
 !data/banners/banner.txt
 !data/banners/sybau.txt
