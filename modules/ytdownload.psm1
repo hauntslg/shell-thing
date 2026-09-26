@@ -56,6 +56,18 @@ function ytdownload {
             $arguments += @("bestaudio", "--extract-audio", "--audio-format", "mp3")
         }
 
+        "^ogg$" {
+            $arguments += @("bestaudio", "--extract-audio", "--audio-format", "vorbis")
+        }
+
+        "^vorbis$" {
+            $arguments += @("bestaudio", "--extract-audio", "--audio-format", "vorbis")
+        }
+
+        "^opus$" {
+            $arguments += @("bestaudio", "--extract-audio", "--audio-format", "opus")
+        }
+
         "^aac$" {
             $arguments += @("bestaudio", "--extract-audio", "--audio-format", "aac")
         }
@@ -75,7 +87,7 @@ function ytdownload {
         Default { & $ytdlp $link --list-formats; return } 
     }
 
-    if ($fileName) {
+    if ($filename) {
         $arguments += @("-o", "$filename")
     }
 
